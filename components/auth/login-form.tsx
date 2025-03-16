@@ -13,6 +13,7 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import rogier from "@/images/rogier.webp";
 
 export function LoginForm() {
   const [username, setUsername] = useState("");
@@ -55,12 +56,7 @@ export function LoginForm() {
   return (
     <Card className="w-[500px] p-6">
       <div className="mb-6 flex justify-center">
-        <Image
-          src="/placeholder.svg?height=60&width=240"
-          alt="GierigGroeien.nl"
-          width={240}
-          height={60}
-        />
+        <Image src={rogier} alt="GierigGroeien.nl" width={150} />
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -124,9 +120,9 @@ export function LoginForm() {
         </div>
       </form>
 
-      <div className="mt-6 rounded-md bg-[#fff9c4] p-3 flex items-center">
+      <div className="mt-6 rounded-md bg-[#fff9c4] p-3 flex items-center gap-6">
         <Image
-          src="/placeholder.svg?height=30&width=30"
+          src={rogier}
           alt="Info"
           width={30}
           height={30}

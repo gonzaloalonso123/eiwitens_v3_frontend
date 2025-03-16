@@ -251,7 +251,7 @@ function FixCard({
             <div>
               <p className="text-sm font-medium mb-1">Price</p>
               <p className="text-sm text-muted-foreground">
-                €{product.price?.toFixed(2) || "0.00"}
+                €{product.price || "0.00"}
               </p>
             </div>
             <div>
