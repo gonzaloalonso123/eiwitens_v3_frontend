@@ -42,8 +42,8 @@ import { makeCalculations } from "@/lib/helpers";
 import { ScraperActions } from "@/components/products/scraper-actions";
 import { Edit, Save, AlertTriangle, Copy } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useIngredients } from "@/hooks/use-ingredients";
 
-// Define the schema for the form
 const productSchema = z.object({
   name: z.string().min(1, "Product name is required"),
   store: z.string().min(1, "Store name is required"),
@@ -62,7 +62,7 @@ const productSchema = z.object({
   type: z.string().min(1, "Product type is required"),
   subtypes: z.array(z.string()).default([]),
   price: z.coerce.number().min(0, "Price must be a positive number"),
-  discount_type: z.string().default("none"), // Changed from empty string to "none"
+  discount_type: z.string().default("none"),
   discount_code: z.string().default(""),
   discount_value: z.string().default(""),
   enabled: z.boolean().default(true),
@@ -80,6 +80,14 @@ const productSchema = z.object({
       })
     )
     .default([]),
+  ingredients: z
+    .array(
+      z.object({
+        name: z.string(),
+        amount: z.number(),
+      })
+    )
+    .default([]),
   price_for_element_gram: z.string().optional(),
   price_per_100_calories: z.string().optional(),
   count_clicked: z.array(z.object({ date: z.string() })).default([]),
@@ -93,6 +101,8 @@ interface ProductFormProps {
   isEditing?: boolean;
 }
 
+const ingredients = useIngredients();
+
 export function ProductForm({
   initialData,
   isEditing = false,
@@ -102,17 +112,14 @@ export function ProductForm({
   const { toast } = useToast();
   const router = useRouter();
 
-  // Initialize the form with default values or initial data
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
     defaultValues: initialData || (defaultProduct as any),
   });
 
-  // Watch for changes to type and price for calculations
   const watchType = form.watch("type");
   const watchPrice = form.watch("price");
 
-  // Update calculations when price changes
   useEffect(() => {
     if (watchPrice) {
       const values = form.getValues();
@@ -127,7 +134,6 @@ export function ProductForm({
     }
   }, [watchPrice, form]);
 
-  // Handle form submission
   const onSubmit = async (data: ProductFormValues) => {
     try {
       if (initialData?.id) {
@@ -458,63 +464,109 @@ function ProductFormContent({
             )}
 
             {watchType === "preworkout" && (
-              <>
-                <FormField
-                  control={form.control}
-                  name="caffeine_per_100g"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Caffeine per 100g</FormLabel>
-                      <FormControl>
-                        <Input disabled={disabled} {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <FormField
+                control={form.control}
+                name="ingredients"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Ingredients</FormLabel>
+                    <FormControl>
+                      <div className="space-y-2">
+                        <div className="flex flex-wrap gap-2">
+                          {(field.value || []).map((element, index) => (
+                            <div
+                              key={index}
+                              className="flex items-center gap-2 bg-secondary p-2 rounded-md"
+                            >
+                              <span>{element.name}</span>
+                              <span className="text-sm text-muted-foreground">
+                                {element.amount}mg
+                              </span>
+                              <button
+                                type="button"
+                                className="text-destructive hover:text-destructive/80"
+                                onClick={() => {
+                                  const newElements = [...(field.value || [])];
+                                  newElements.splice(index, 1);
+                                  field.onChange(newElements);
+                                }}
+                                disabled={disabled}
+                              >
+                                ×
+                              </button>
+                            </div>
+                          ))}
+                        </div>
 
-                <FormField
-                  control={form.control}
-                  name="beta_alanine_per_100g"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Beta Alanine per 100g</FormLabel>
-                      <FormControl>
-                        <Input disabled={disabled} {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="citrulline_per_100g"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Citrulline per 100g</FormLabel>
-                      <FormControl>
-                        <Input disabled={disabled} {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="tyrosine_per_100g"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Tyrosine per 100g</FormLabel>
-                      <FormControl>
-                        <Input disabled={disabled} {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </>
+                        {!disabled && (
+                          <div className="flex gap-2">
+                            <Select
+                              onValueChange={(value) => {
+                                if (value === "custom") {
+                                  const customName = prompt(
+                                    "Enter ingredient name"
+                                  );
+                                  if (customName) {
+                                    const customAmount =
+                                      prompt("Enter amount in mg");
+                                    if (
+                                      customAmount &&
+                                      !isNaN(Number(customAmount))
+                                    ) {
+                                      const newElements = [
+                                        ...(field.value || []),
+                                      ];
+                                      newElements.push({
+                                        name: customName,
+                                        amount: Number(customAmount),
+                                      });
+                                      field.onChange(newElements);
+                                    }
+                                  }
+                                } else {
+                                  const amount = prompt("Enter amount in mg");
+                                  if (amount && !isNaN(Number(amount))) {
+                                    const newElements = [
+                                      ...(field.value || []),
+                                    ];
+                                    newElements.push({
+                                      name: value,
+                                      amount: Number(amount),
+                                    });
+                                    field.onChange(newElements);
+                                  }
+                                }
+                              }}
+                            >
+                              <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Add ingredient" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="custom">
+                                  + Create new ingredient
+                                </SelectItem>
+                                {ingredients.map((ingredient) => (
+                                  <SelectItem
+                                    key={ingredient}
+                                    value={ingredient}
+                                  >
+                                    {ingredient}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        )}
+                      </div>
+                    </FormControl>
+                    <FormDescription>
+                      Add the ingredients and their amounts for this pre-workout
+                      product
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             )}
 
             <FormField
@@ -826,7 +878,6 @@ function ProductFormContent({
 }
 
 function ProductStats({ product }: { product: Product }) {
-  // Format data for charts
   const clickData =
     product.count_clicked?.map((click) => ({
       date: new Date(click.date).toLocaleDateString(),

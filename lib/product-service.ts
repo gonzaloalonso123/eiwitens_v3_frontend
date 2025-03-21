@@ -42,6 +42,10 @@ export interface Product {
   scraper: ScraperAction[];
   price_history?: PriceHistory[];
   count_top10?: { date: string }[];
+  ingredients?: {
+    name: string;
+    amount: number;
+  };
 }
 
 export interface PriceHistory {

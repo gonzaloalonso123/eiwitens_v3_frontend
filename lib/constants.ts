@@ -87,7 +87,7 @@ export const defaultProduct = {
   ammount: "",
   url: "",
   price_for_element_gram: "",
-  discount_type: "none", // Updated to use "none" instead of empty string
+  discount_type: "none",
   store: "",
   subtypes: [],
   scraper: [defaultAction],
