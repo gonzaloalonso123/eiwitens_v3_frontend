@@ -43,6 +43,8 @@ import { ScraperActions } from "@/components/products/scraper-actions";
 import { Edit, Save, AlertTriangle, Copy } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useIngredients } from "@/hooks/use-ingredients";
+import { IngredientDialog } from "@/components/products/ingredient-dialog";
+import { useDialog } from "@/hooks/use-dialog";
 
 const productSchema = z.object({
   name: z.string().min(1, "Product name is required"),
@@ -109,6 +111,8 @@ export function ProductForm({
   const [activeTab, setActiveTab] = useState("info");
   const { toast } = useToast();
   const router = useRouter();
+  const ingredientDialog = useDialog(false);
+  const ingredients = useIngredients();
 
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
@@ -179,6 +183,14 @@ export function ProductForm({
     });
   };
 
+  const handleAddIngredient = (ingredient: {
+    name: string;
+    amount: number;
+  }) => {
+    const currentIngredients = form.getValues("ingredients") || [];
+    form.setValue("ingredients", [...currentIngredients, ingredient]);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -219,6 +231,8 @@ export function ProductForm({
               onSubmit={onSubmit}
               disabled={disabled}
               watchType={watchType}
+              ingredients={ingredients}
+              onOpenIngredientDialog={ingredientDialog.open}
             />
           </TabsContent>
 
@@ -234,8 +248,17 @@ export function ProductForm({
           onSubmit={onSubmit}
           disabled={disabled}
           watchType={watchType}
+          ingredients={ingredients}
+          onOpenIngredientDialog={ingredientDialog.open}
         />
       )}
+
+      <IngredientDialog
+        isOpen={ingredientDialog.isOpen}
+        onClose={ingredientDialog.close}
+        onAdd={handleAddIngredient}
+        ingredients={ingredients}
+      />
     </div>
   );
 }
@@ -245,14 +268,16 @@ function ProductFormContent({
   onSubmit,
   disabled,
   watchType,
+  ingredients,
+  onOpenIngredientDialog,
 }: {
   form: any;
   onSubmit: (data: ProductFormValues) => void;
   disabled: boolean;
   watchType: string;
+  ingredients: string[];
+  onOpenIngredientDialog: () => void;
 }) {
-  const ingredients = useIngredients();
-
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
@@ -499,63 +524,13 @@ function ProductFormContent({
                         </div>
 
                         {!disabled && (
-                          <div className="flex gap-2">
-                            <Select
-                              onValueChange={(value) => {
-                                if (value === "custom") {
-                                  const customName = prompt(
-                                    "Enter ingredient name"
-                                  );
-                                  if (customName) {
-                                    const customAmount =
-                                      prompt("Enter amount in mg");
-                                    if (
-                                      customAmount &&
-                                      !isNaN(Number(customAmount))
-                                    ) {
-                                      const newElements = [
-                                        ...(field.value || []),
-                                      ];
-                                      newElements.push({
-                                        name: customName,
-                                        amount: Number(customAmount),
-                                      });
-                                      field.onChange(newElements);
-                                    }
-                                  }
-                                } else {
-                                  const amount = prompt("Enter amount in mg");
-                                  if (amount && !isNaN(Number(amount))) {
-                                    const newElements = [
-                                      ...(field.value || []),
-                                    ];
-                                    newElements.push({
-                                      name: value,
-                                      amount: Number(amount),
-                                    });
-                                    field.onChange(newElements);
-                                  }
-                                }
-                              }}
-                            >
-                              <SelectTrigger className="w-full">
-                                <SelectValue placeholder="Add ingredient" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="custom">
-                                  + Create new ingredient
-                                </SelectItem>
-                                {ingredients.map((ingredient) => (
-                                  <SelectItem
-                                    key={ingredient}
-                                    value={ingredient}
-                                  >
-                                    {ingredient}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={onOpenIngredientDialog}
+                          >
+                            Add Ingredient
+                          </Button>
                         )}
                       </div>
                     </FormControl>

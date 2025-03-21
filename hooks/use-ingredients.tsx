@@ -10,6 +10,8 @@ export const useIngredients = () => {
     getProducts().then((products) => {
       const allIngredients = products.flatMap((product) => product.ingredients);
       const uniqueIngredients = Array.from(new Set(allIngredients));
+
+      console.log(uniqueIngredients);
       setIngredients(uniqueIngredients);
     });
   }, []);
