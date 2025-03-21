@@ -177,6 +177,8 @@ export function ProductForm({
       name: `${productData.name} [DUPLICATE]`,
     };
 
+    initialData.id = undefined;
+
     // Reset the form with the duplicated data
     form.reset(duplicatedProduct as any);
     setDisabled(false);
