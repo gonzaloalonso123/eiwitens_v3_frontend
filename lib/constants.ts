@@ -14,11 +14,23 @@ export const productSubtypes: Record<
   { value: string; label: string }[]
 > = {
   proteine: [
-    { value: "whey_protein", label: "Whey Protein" },
-    { value: "whey_isolate", label: "Whey Isolate" },
-    { value: "casein", label: "Casein" },
-    { value: "egg_protein", label: "Egg Protein" },
-    { value: "plant_protein", label: "Plant Protein" },
+    { label: "Whey Proteïne", value: "whey_protein" },
+    { label: "Whey Isolate", value: "whey_isolate" },
+    { label: "Vegan Proteïne", value: "vegan_protein" },
+    { label: "Clear whey", value: "clear_whey" },
+    { label: "Collageen Eiwit", value: "collagen_protein" },
+    { label: "Ei Eiwit", value: "egg_protein" },
+    { label: "Beef Proteïne", value: "beef_protein" },
+    { label: "Caseïne", value: "caseine" },
+    { label: "Biologische eiwitpoeder", value: "organic_protein" },
+    { label: "Paleo eiwitpoeder", value: "paleo_protein" },
+    { label: "Eiwitpoeder Zonder Zoetstof", value: "unsweetened_protein" },
+    { label: "Proteïne Milkshake", value: "protein_milkshake" },
+    { label: "Lactosevrij proteïne poeder", value: "lactose_free_protein" },
+    { label: "Diet Whey", value: "diet_whey" },
+    { label: "Protein Coffee", value: "protein_coffee" },
+    { label: "Whey Hydro", value: "whey_hydro" },
+    { label: "Whey Concentraat", value: "whey_concentrate" },
   ],
   creatine: [
     { value: "monohydrate", label: "Monohydrate" },
@@ -40,7 +52,6 @@ export const productSubtypes: Record<
   ],
 };
 
-// Fix: Changed the empty string value to "none"
 export const discountTypes = [
   { value: "none", label: "None" },
   { value: "percentage", label: "Percentage" },
