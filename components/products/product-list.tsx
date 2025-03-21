@@ -8,7 +8,14 @@ import {
 } from "@/lib/product-service";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ChevronDown, Plus, Search, Trash2, Edit } from "lucide-react";
+import {
+  ChevronDown,
+  Plus,
+  Search,
+  Trash2,
+  Edit,
+  TriangleAlert,
+} from "lucide-react";
 import Link from "next/link";
 import {
   Table,
@@ -28,15 +35,66 @@ import { useToast } from "@/components/ui/use-toast";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 export function ProductList() {
+  const [searchTerm, setSearchTerm] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("productSearchTerm") || "";
+    }
+    return "";
+  });
+  const [storeFilter, setStoreFilter] = useState(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("productStoreFilter");
+      return stored !== null ? stored : null;
+    }
+    return null;
+  });
+  const [typeFilter, setTypeFilter] = useState(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("productTypeFilter");
+      return stored !== null ? stored : null;
+    }
+    return null;
+  });
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [storeFilter, setStoreFilter] = useState<string | null>(null);
-  const [typeFilter, setTypeFilter] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
     fetchProducts();
+  }, []);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("productSearchTerm", searchTerm);
+    }
+  }, [searchTerm]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      if (storeFilter) {
+        localStorage.setItem("productStoreFilter", storeFilter);
+      } else {
+        localStorage.removeItem("productStoreFilter");
+      }
+    }
+  }, [storeFilter]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      if (typeFilter) {
+        localStorage.setItem("productTypeFilter", typeFilter);
+      } else {
+        localStorage.removeItem("productTypeFilter");
+      }
+    }
+  }, [typeFilter]);
+
+  useEffect(() => {
+    console.log("Loaded filters:", {
+      searchTerm,
+      storeFilter,
+      typeFilter,
+    });
   }, []);
 
   const fetchProducts = async () => {
@@ -99,7 +157,9 @@ export function ProductList() {
     const matchesSearch =
       product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       product.store.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStore = !storeFilter || product.store === storeFilter;
+    const matchesStore =
+      !storeFilter ||
+      product.store.toLowerCase().includes(storeFilter.toLowerCase());
     const matchesType = !typeFilter || product.type === typeFilter;
 
     return matchesSearch && matchesStore && matchesType;
@@ -135,27 +195,14 @@ export function ProductList() {
           />
         </div>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="w-[150px] justify-between">
-              <span>{storeFilter || "All Stores"}</span>
-              <ChevronDown className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuItem onClick={() => setStoreFilter(null)}>
-              All Stores
-            </DropdownMenuItem>
-            {getUniqueStores().map((store) => (
-              <DropdownMenuItem
-                key={store}
-                onClick={() => setStoreFilter(store)}
-              >
-                {store}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="relative max-w-[150px]">
+          <Input
+            placeholder="Store filter"
+            value={storeFilter || ""}
+            onChange={(e) => setStoreFilter(e.target.value || null)}
+            className="w-full"
+          />
+        </div>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -189,6 +236,7 @@ export function ProductList() {
               <TableHead>Store</TableHead>
               <TableHead>Type</TableHead>
               <TableHead>Price</TableHead>
+              <TableHead>Warning</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -214,6 +262,13 @@ export function ProductList() {
                     {typeof product.price === "number"
                       ? product.price.toFixed(2)
                       : "0.00"}
+                  </TableCell>
+                  <TableCell>
+                    {product.warning ? (
+                      <span className="w-full flex items-center justify-center">
+                        <TriangleAlert className="h-6 w-6 text-red-500" />
+                      </span>
+                    ) : null}
                   </TableCell>
                   <TableCell>
                     <span

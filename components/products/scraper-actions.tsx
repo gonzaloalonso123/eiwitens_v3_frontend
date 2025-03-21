@@ -94,7 +94,6 @@ export function ScraperActions({
     setTestResult(null);
 
     try {
-      // Call the API to test the scraper
       const result = await testScraper(url, value);
 
       if (
@@ -283,6 +282,7 @@ export function ScraperActions({
                 onClick={handleTestScraper}
                 disabled={disabled || testing || value.length === 0}
                 className="w-full"
+                type="button"
               >
                 {testing ? "Testing..." : "Test Scraper Actions"}
               </Button>
