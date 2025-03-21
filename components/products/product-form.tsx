@@ -137,6 +137,10 @@ export function ProductForm({
   }, [watchPrice, form]);
 
   const onSubmit = async (data: ProductFormValues) => {
+    Object.keys(data).forEach(
+      (key) => data[key] === undefined && delete data[key]
+    );
+
     try {
       if (initialData?.id) {
         await updateProduct(initialData.id, data);
