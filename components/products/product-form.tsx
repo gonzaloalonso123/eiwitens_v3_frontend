@@ -101,8 +101,6 @@ interface ProductFormProps {
   isEditing?: boolean;
 }
 
-const ingredients = useIngredients();
-
 export function ProductForm({
   initialData,
   isEditing = false,
@@ -253,6 +251,8 @@ function ProductFormContent({
   disabled: boolean;
   watchType: string;
 }) {
+  const ingredients = useIngredients();
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">

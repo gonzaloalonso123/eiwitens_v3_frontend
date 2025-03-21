@@ -1,3 +1,5 @@
+"use client";
+
 import { getProducts } from "@/lib/product-service";
 import { useEffect, useState } from "react";
 
