@@ -45,7 +45,7 @@ export interface Product {
   ingredients?: {
     name: string;
     amount: number;
-  };
+  }[];
 }
 
 export interface PriceHistory {

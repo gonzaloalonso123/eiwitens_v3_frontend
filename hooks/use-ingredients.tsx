@@ -8,7 +8,7 @@ export const useIngredients = () => {
 
   useEffect(() => {
     getProducts().then((products) => {
-      const allIngredients = products.flatMap((product) => product.ingredients);
+      const allIngredients = products.flatMap((product) => product.ingredients?.map((ingredient) => ingredient.name));
       const uniqueIngredients = Array.from(new Set(allIngredients));
 
       console.log(uniqueIngredients);
