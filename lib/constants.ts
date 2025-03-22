@@ -44,6 +44,7 @@ export const productSubtypes: Record<
   preworkout: [
     { value: "high_caffeine", label: "High Caffeine" },
     { value: "stimulant_free", label: "Stimulant Free" },
+    { value: "caffeine_tablets", label: "Caffeine Tablets" },
   ],
   vitamins: [
     { value: "multivitamin", label: "Multivitamin" },
