@@ -20,6 +20,7 @@ import {
   Check,
   GripVertical,
   Clock,
+  Wand2,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -40,6 +41,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
+// Action types that match the backend capabilities
 const actionTypes = [
   { value: "click", label: "Click Element" },
   { value: "selectOption", label: "Select Option" },
@@ -47,6 +49,7 @@ const actionTypes = [
   { value: "wait", label: "Wait" },
 ];
 
+// Default action that matches the backend's expected format
 const defaultAction = {
   id: "",
   type: "click",
@@ -56,6 +59,7 @@ const defaultAction = {
   duration: 2000,
 };
 
+// Interface for scraper actions that matches the backend
 export interface ScraperAction {
   id: string;
   type: "click" | "selectOption" | "select" | "wait";
@@ -72,8 +76,7 @@ interface ScraperActionsProps {
   url: string;
   onTest?: (
     url: string,
-    actions: ScraperAction[],
-    cookieBannerXPaths: string[]
+    actions: ScraperAction[]
   ) => Promise<{
     price: number;
     error: {
@@ -81,7 +84,9 @@ interface ScraperActionsProps {
       index: number;
       screenshot: string | null;
     };
+    generatedActions?: ScraperAction[];
   }>;
+  onUpdateWithAiActions?: (actions: ScraperAction[]) => void;
 }
 
 export function ScraperActions({
@@ -90,6 +95,7 @@ export function ScraperActions({
   disabled = false,
   url,
   onTest,
+  onUpdateWithAiActions,
 }: ScraperActionsProps) {
   const [testResult, setTestResult] = useState<{
     success: boolean;
@@ -99,10 +105,12 @@ export function ScraperActions({
       text: string;
       screenshot?: string;
     };
+    generatedActions?: ScraperAction[];
   } | null>(null);
   const [testing, setTesting] = useState(false);
   const { toast } = useToast();
 
+  // Set up sensors for drag and drop
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -148,6 +156,41 @@ export function ScraperActions({
     }
   };
 
+  const handleUpdateWithAiActions = (generatedActions) => {
+    if (
+      !generatedActions ||
+      !Array.isArray(generatedActions) ||
+      generatedActions.length === 0
+    ) {
+      toast({
+        title: "Error",
+        description: "No AI-generated actions available",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Format the actions to match the expected format
+    const formattedActions = generatedActions.map((action) => ({
+      ...action,
+      id: action.id || uuidv4(),
+      selector: action.selector || "xpath",
+    }));
+
+    // Update the form with the new actions
+    onChange(formattedActions);
+
+    // Call the callback if provided
+    if (onUpdateWithAiActions) {
+      onUpdateWithAiActions(formattedActions);
+    }
+
+    toast({
+      title: "Success",
+      description: "Scraper actions updated with AI-generated actions",
+    });
+  };
+
   const handleTestScraper = async () => {
     if (!url) {
       toast({
@@ -183,6 +226,31 @@ export function ScraperActions({
       const result = await onTest(url, value);
 
       if (
+        result.generatedActions &&
+        Array.isArray(result.generatedActions) &&
+        result.generatedActions.length > 0
+      ) {
+        setTestResult({
+          success: true,
+          price: result.price,
+          generatedActions: result.generatedActions,
+        });
+
+        toast({
+          title: "AI-Generated Actions",
+          description:
+            "The AI found a better way to extract the price. Click below to use the AI-generated action.",
+          action: (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleUpdateWithAiActions(result.generatedActions)}
+            >
+              Use AI Action
+            </Button>
+          ),
+        });
+      } else if (
         result &&
         result.price !== undefined &&
         (!result.error || result.error.index === -1)
@@ -327,6 +395,17 @@ export function ScraperActions({
           </div>
         </CardContent>
       </Card>
+      {testResult?.generatedActions && (
+        <Button
+          onClick={() => handleUpdateWithAiActions(testResult.generatedActions)}
+          variant="outline"
+          className="mt-2"
+          type="button"
+        >
+          <Wand2 className="h-4 w-4 mr-2" />
+          Use AI-Generated Action
+        </Button>
+      )}
     </div>
   );
 }
