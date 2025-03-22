@@ -43,6 +43,7 @@ export interface Product {
   scraper: ScraperAction[];
   price_history?: PriceHistory[];
   count_top10?: { date: string }[];
+  cookieBannerXPaths: string[];
   ingredients?: {
     name: string;
     amount: number;
@@ -170,17 +171,8 @@ export const removeDiscountFromAllProductsOfStore = async (
 };
 
 export const migrate = async () => {
-  console.log("Starting product migration...");
   const products = await getProducts();
-
-  const defaultCookieBannerXPaths = [
-    "//button[contains(text(), 'Accept')]",
-    "//button[contains(text(), 'Accept All')]",
-    "//button[contains(@class, 'cookie-accept')]",
-    "//button[contains(@id, 'onetrust-accept-btn-handler')]",
-    "//button[contains(@id, 'CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll')]",
-  ];
-
+  const defaultCookieBannerXPaths: string[] = [];
   let migratedCount = 0;
 
   for (const product of products) {
@@ -188,27 +180,6 @@ export const migrate = async () => {
       const updateData: any = {
         cookieBannerXPaths: defaultCookieBannerXPaths,
       };
-      if (
-        product.scraper &&
-        Array.isArray(product.scraper) &&
-        product.scraper.length > 0
-      ) {
-        const updatedScraperActions = product.scraper.map((action) => {
-          const updatedAction = {
-            ...action,
-            id: action.id || uuidv4(),
-            selector: action.selector || "xpath",
-            xpath: action.xpath || "",
-          };
-
-          if (action.type === "wait" && !action.duration) {
-            updatedAction.duration = 2000;
-          }
-          return updatedAction;
-        });
-
-        updateData.scraper = updatedScraperActions;
-      }
       await updateProduct(product.id, updateData);
       migratedCount++;
       console.log(`Migrated product: ${product.name} (${product.id})`);

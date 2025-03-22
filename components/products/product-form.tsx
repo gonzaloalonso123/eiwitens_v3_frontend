@@ -39,7 +39,15 @@ import {
   defaultProduct,
 } from "@/lib/constants";
 import { makeCalculations } from "@/lib/helpers";
-import { Edit, Save, AlertTriangle, Copy, Plus, Trash2 } from "lucide-react";
+import {
+  Edit,
+  Save,
+  AlertTriangle,
+  Copy,
+  Plus,
+  Trash2,
+  Info,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useIngredients } from "@/hooks/use-ingredients";
 import { IngredientDialog } from "@/components/products/ingredient-dialog";
@@ -117,19 +125,11 @@ export function ProductForm({
   const ingredientDialog = useDialog(false);
   const ingredients = useIngredients();
 
-  // Initialize default cookie banner XPaths if not present in initialData
-  const defaultCookieBannerXPaths = [
-    "//button[contains(text(), 'Accept')]",
-    "//button[contains(text(), 'Accept All')]",
-    "//button[contains(@class, 'cookie-accept')]",
-  ];
-
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
     defaultValues: {
       ...(initialData || (defaultProduct as any)),
-      cookieBannerXPaths:
-        initialData?.cookieBannerXPaths || defaultCookieBannerXPaths,
+      cookieBannerXPaths: initialData?.cookieBannerXPaths || [],
     },
   });
 
@@ -871,7 +871,24 @@ function ProductFormContent({
               <h3 className="text-lg font-medium">Cookie Banner XPaths</h3>
               <p className="text-sm text-muted-foreground">
                 Add XPaths to automatically handle cookie consent banners during
-                scraping
+                scraping. Normally used XPATHS are already supported, only use
+                if this site has a different cookie banner.
+              </p>
+              <p className="text-xs text-muted-foreground flex flex-col p-2 border rounded-xl">
+                <span className="flex gap-1 items-center">
+                  <Info size={12} /> Supported:
+                </span>
+                {[
+                  "//button[contains(text(), 'Accept')]",
+                  "//button[contains(text(), 'Accept All')]",
+                  "//button[contains(@class, 'cookie-accept')]",
+                  "//button[contains(@id, 'onetrust-accept-btn-handler')]",
+                  "//button[contains(@id, 'CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll')]",
+                ].map((xpath) => (
+                  <span key={xpath} className="text-[10px] text-gray-500">
+                    {xpath}
+                  </span>
+                ))}
               </p>
 
               <FormField

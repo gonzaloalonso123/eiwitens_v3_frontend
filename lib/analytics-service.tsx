@@ -214,7 +214,6 @@ export const getStoreAnalyticsData = async (): Promise<{
   return { storeClicks, storeProducts };
 };
 
-// Update the getAnalyticsSummary function to include rogiersChoiceClicks
 export const getAnalyticsSummary = async (): Promise<AnalyticsSummary> => {
   const products = await getProducts();
 
@@ -224,8 +223,6 @@ export const getAnalyticsSummary = async (): Promise<AnalyticsSummary> => {
   );
 
   const activeProducts = products.filter((p) => p.enabled).length;
-
-  // Calculate Rogier's Choice clicks
   const rogiersChoiceClicks = products.reduce(
     (total, product) =>
       total +
@@ -245,7 +242,6 @@ export const getAnalyticsSummary = async (): Promise<AnalyticsSummary> => {
     .sort((a, b) => b.clicks - a.clicks)
     .slice(0, 5);
 
-  // Group by store
   const storeMap: Record<string, { products: number; clicks: number }> = {};
 
   products.forEach((product) => {

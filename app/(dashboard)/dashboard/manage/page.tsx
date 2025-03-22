@@ -9,6 +9,7 @@ import { scrapeAll } from "@/lib/api-service";
 import Image from "next/image";
 import rogierImage from "@/images/rogier.webp";
 import { migrate } from "@/lib/product-service";
+import { TriangleAlert } from "lucide-react";
 
 export default function ManagePage() {
   const [loading, setLoading] = useState(false);
@@ -85,7 +86,9 @@ export default function ManagePage() {
                   });
                 }}
               >
-                Execute migration
+                Execute migration (
+                <TriangleAlert className="h-4 w-4 text-yellow-500" /> DONT TOUCH
+                UNLESS YOU KNOW WHAT YOU'RE DOING)
               </Button>
             </div>
           </div>

@@ -40,8 +40,9 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import Rogier from "@/images/rogier.webp";
+import Image from "next/image";
 
-// Action types that match the backend capabilities
 const actionTypes = [
   { value: "click", label: "Click Element" },
   { value: "selectOption", label: "Select Option" },
@@ -49,7 +50,6 @@ const actionTypes = [
   { value: "wait", label: "Wait" },
 ];
 
-// Default action that matches the backend's expected format
 const defaultAction = {
   id: "",
   type: "click",
@@ -59,7 +59,6 @@ const defaultAction = {
   duration: 2000,
 };
 
-// Interface for scraper actions that matches the backend
 export interface ScraperAction {
   id: string;
   type: "click" | "selectOption" | "select" | "wait";
@@ -110,7 +109,6 @@ export function ScraperActions({
   const [testing, setTesting] = useState(false);
   const { toast } = useToast();
 
-  // Set up sensors for drag and drop
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -170,17 +168,14 @@ export function ScraperActions({
       return;
     }
 
-    // Format the actions to match the expected format
     const formattedActions = generatedActions.map((action) => ({
       ...action,
       id: action.id || uuidv4(),
       selector: action.selector || "xpath",
     }));
 
-    // Update the form with the new actions
     onChange(formattedActions);
 
-    // Call the callback if provided
     if (onUpdateWithAiActions) {
       onUpdateWithAiActions(formattedActions);
     }
@@ -244,6 +239,7 @@ export function ScraperActions({
             <Button
               variant="outline"
               size="sm"
+              type="button"
               onClick={() => handleUpdateWithAiActions(result.generatedActions)}
             >
               Use AI Action
@@ -356,12 +352,13 @@ export function ScraperActions({
         <CardContent className="pt-4">
           <div className="flex flex-col md:flex-row gap-4 items-center">
             <div className="flex-shrink-0">
-              <div className="h-16 w-16 bg-primary/10 rounded-md flex items-center justify-center">
-                <img
-                  src="/placeholder.svg?height=64&width=64"
+              <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center">
+                <Image
+                  src={Rogier}
                   alt="Scraper"
                   width={40}
                   height={40}
+                  className="scale-x-[-1]"
                 />
               </div>
             </div>
@@ -461,6 +458,7 @@ function SortableActionItem({
               <Button
                 variant="outline"
                 size="icon"
+                type="button"
                 onClick={() => onRemove(index)}
                 disabled={disabled}
               >
