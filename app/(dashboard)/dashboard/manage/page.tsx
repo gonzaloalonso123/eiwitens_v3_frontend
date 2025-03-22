@@ -78,7 +78,7 @@ export default function ManagePage() {
                 variant="outline"
                 className="w-full"
                 onClick={() => {
-                  // migrate();
+                  migrate();
                   toast({
                     title: "Migrated products",
                     description: "Products have been migrated",

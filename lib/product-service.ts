@@ -9,6 +9,7 @@ import {
   setDoc,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { v4 as uuidv4 } from "uuid";
 
 export interface Product {
   id?: string;
@@ -59,6 +60,7 @@ export interface ScraperAction {
   xpath: string;
   type: string;
   optionText?: string;
+  duration?: number;
 }
 
 export interface BrandDiscount {
@@ -158,7 +160,7 @@ export const removeDiscountFromAllProductsOfStore = async (
   products.forEach(async (product) => {
     if (product.store === store && product.id) {
       await updateProduct(product.id, {
-        discount_type: "none", // Changed from empty string to "none"
+        discount_type: "none",
         discount_value: "",
         discount_code: "",
       });
@@ -168,14 +170,54 @@ export const removeDiscountFromAllProductsOfStore = async (
 };
 
 export const migrate = async () => {
+  console.log("Starting product migration...");
   const products = await getProducts();
-  products.forEach(async (product) => {
-    if (product.subtypes.includes("vegan_protein")) {
-      await updateProduct(product.id, {
-        subtypes: product.subtypes.map((subtype) =>
-          subtype === "vegan_protein" ? "vegan_proteine" : subtype
-        ),
-      });
+
+  const defaultCookieBannerXPaths = [
+    "//button[contains(text(), 'Accept')]",
+    "//button[contains(text(), 'Accept All')]",
+    "//button[contains(@class, 'cookie-accept')]",
+    "//button[contains(@id, 'onetrust-accept-btn-handler')]",
+    "//button[contains(@id, 'CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll')]",
+  ];
+
+  let migratedCount = 0;
+
+  for (const product of products) {
+    try {
+      const updateData: any = {
+        cookieBannerXPaths: defaultCookieBannerXPaths,
+      };
+      if (
+        product.scraper &&
+        Array.isArray(product.scraper) &&
+        product.scraper.length > 0
+      ) {
+        const updatedScraperActions = product.scraper.map((action) => {
+          const updatedAction = {
+            ...action,
+            id: action.id || uuidv4(),
+            selector: action.selector || "xpath",
+            xpath: action.xpath || "",
+          };
+
+          if (action.type === "wait" && !action.duration) {
+            updatedAction.duration = 2000;
+          }
+          return updatedAction;
+        });
+
+        updateData.scraper = updatedScraperActions;
+      }
+      await updateProduct(product.id, updateData);
+      migratedCount++;
+      console.log(`Migrated product: ${product.name} (${product.id})`);
+    } catch (error) {
+      console.error(`Error migrating product ${product.id}:`, error);
     }
-  });
+  }
+
+  console.log(
+    `Migration completed. ${migratedCount} of ${products.length} products migrated.`
+  );
 };

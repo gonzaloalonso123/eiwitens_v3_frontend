@@ -102,7 +102,15 @@ export function ProductList() {
     try {
       const data = await getProducts();
       setProducts(data);
-      console.log(data);
+      console.log(
+        data
+          .slice(0, 5)
+          .map((product) => ({
+            ...product,
+            count_clicked: undefined,
+            price_history: undefined,
+          }))
+      );
     } catch (error) {
       console.error("Error fetching products:", error);
       toast({

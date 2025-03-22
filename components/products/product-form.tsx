@@ -39,12 +39,13 @@ import {
   defaultProduct,
 } from "@/lib/constants";
 import { makeCalculations } from "@/lib/helpers";
-import { ScraperActions } from "@/components/products/scraper-actions";
-import { Edit, Save, AlertTriangle, Copy } from "lucide-react";
+import { Edit, Save, AlertTriangle, Copy, Plus, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useIngredients } from "@/hooks/use-ingredients";
 import { IngredientDialog } from "@/components/products/ingredient-dialog";
 import { useDialog } from "@/hooks/use-dialog";
+import { testScraper } from "@/lib/api-service";
+import { ScraperActions } from "./scraper-actions";
 
 const productSchema = z.object({
   name: z.string().min(1, "Product name is required"),
@@ -79,9 +80,11 @@ const productSchema = z.object({
         xpath: z.string(),
         type: z.string(),
         optionText: z.string().optional(),
+        duration: z.number().optional(),
       })
     )
     .default([]),
+  cookieBannerXPaths: z.array(z.string()).default([]),
   ingredients: z
     .array(
       z.object({
@@ -114,9 +117,20 @@ export function ProductForm({
   const ingredientDialog = useDialog(false);
   const ingredients = useIngredients();
 
+  // Initialize default cookie banner XPaths if not present in initialData
+  const defaultCookieBannerXPaths = [
+    "//button[contains(text(), 'Accept')]",
+    "//button[contains(text(), 'Accept All')]",
+    "//button[contains(@class, 'cookie-accept')]",
+  ];
+
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
-    defaultValues: initialData || (defaultProduct as any),
+    defaultValues: {
+      ...(initialData || (defaultProduct as any)),
+      cookieBannerXPaths:
+        initialData?.cookieBannerXPaths || defaultCookieBannerXPaths,
+    },
   });
 
   const watchType = form.watch("type");
@@ -284,6 +298,31 @@ function ProductFormContent({
   ingredients: string[];
   onOpenIngredientDialog: () => void;
 }) {
+  const [newCookieBannerXPath, setNewCookieBannerXPath] = useState("");
+
+  const handleAddCookieBannerXPath = () => {
+    if (newCookieBannerXPath.trim()) {
+      const currentXPaths = form.getValues("cookieBannerXPaths") || [];
+      form.setValue("cookieBannerXPaths", [
+        ...currentXPaths,
+        newCookieBannerXPath.trim(),
+      ]);
+      setNewCookieBannerXPath("");
+    }
+  };
+
+  const handleRemoveCookieBannerXPath = (index: number) => {
+    const currentXPaths = form.getValues("cookieBannerXPaths") || [];
+    const newXPaths = [...currentXPaths];
+    newXPaths.splice(index, 1);
+    form.setValue("cookieBannerXPaths", newXPaths);
+  };
+
+  const handleTestScraper = async (url: string, actions: any[]) => {
+    const cookieBannerXPaths = form.getValues("cookieBannerXPaths") || [];
+    return await testScraper(url, actions, cookieBannerXPaths);
+  };
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
@@ -824,26 +863,110 @@ function ProductFormContent({
 
         <Card>
           <CardHeader>
-            <CardTitle>Scraper Actions</CardTitle>
+            <CardTitle>Scraper Configuration</CardTitle>
           </CardHeader>
-          <CardContent>
-            <FormField
-              control={form.control}
-              name="scraper"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <ScraperActions
-                      value={field.value}
-                      onChange={field.onChange}
-                      disabled={disabled}
-                      url={form.getValues("url")}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          <CardContent className="space-y-6">
+            {/* Cookie Banner XPaths Section */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">Cookie Banner XPaths</h3>
+              <p className="text-sm text-muted-foreground">
+                Add XPaths to automatically handle cookie consent banners during
+                scraping
+              </p>
+
+              <FormField
+                control={form.control}
+                name="cookieBannerXPaths"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <div className="space-y-4">
+                        {!disabled && (
+                          <div className="flex gap-2">
+                            <Input
+                              placeholder="XPATH for cookie banner accept button"
+                              value={newCookieBannerXPath}
+                              onChange={(e) =>
+                                setNewCookieBannerXPath(e.target.value)
+                              }
+                            />
+                            <Button
+                              onClick={handleAddCookieBannerXPath}
+                              type="button"
+                              disabled={!newCookieBannerXPath.trim()}
+                            >
+                              <Plus className="h-4 w-4 mr-2" />
+                              Add
+                            </Button>
+                          </div>
+                        )}
+
+                        <div className="space-y-2">
+                          {(field.value || []).map((xpath, index) => (
+                            <div
+                              key={index}
+                              className="flex items-center gap-2 p-2 bg-muted rounded-md"
+                            >
+                              <div className="flex-1 text-sm font-mono overflow-hidden text-ellipsis">
+                                {xpath}
+                              </div>
+                              {!disabled && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() =>
+                                    handleRemoveCookieBannerXPath(index)
+                                  }
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </FormControl>
+                    <FormDescription>
+                      These XPaths will be used to automatically click cookie
+                      consent buttons during scraping
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Scraper Actions Section */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">Scraper Actions</h3>
+              <p className="text-sm text-muted-foreground">
+                Configure the sequence of actions to extract price data from the
+                product page
+              </p>
+
+              <FormField
+                control={form.control}
+                name="scraper"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <ScraperActions
+                        value={field.value}
+                        onChange={field.onChange}
+                        disabled={disabled}
+                        url={form.getValues("url")}
+                        onTest={handleTestScraper}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Define the sequence of actions to extract price data from
+                      the product page. Drag and drop to reorder.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
           </CardContent>
         </Card>
 

@@ -18,15 +18,18 @@ export const getStatus = async () => {
     });
 };
 
-export const testScraper = async (url: string, actions: any[]) => {
+export const testScraper = async (
+  url: string,
+  actions: any[],
+  cookieBannerXPaths: string[]
+) => {
   return axios
     .post(`${backendUrl}/test-scraper`, {
       url,
       actions,
+      cookieBannerXPaths,
     })
     .then((response) => {
-      // Return the response data directly to preserve the exact format
-      // Expected format: { price: number, error: { text: string, index: number, screenshot: string } }
       return response.data;
     })
     .catch((error) => {

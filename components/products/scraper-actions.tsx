@@ -12,18 +12,76 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
-import { Alert } from "@/components/ui/alert";
-import { Trash2, Plus, AlertTriangle, Check } from "lucide-react";
-import { actionTypes, defaultAction } from "@/lib/constants";
-import type { ScraperAction } from "@/lib/product-service";
-import { useToast } from "@/components/ui/use-toast";
-import { testScraper } from "@/lib/api-service";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Trash2,
+  Plus,
+  AlertTriangle,
+  Check,
+  GripVertical,
+  Clock,
+} from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+
+const actionTypes = [
+  { value: "click", label: "Click Element" },
+  { value: "selectOption", label: "Select Option" },
+  { value: "select", label: "Select Text" },
+  { value: "wait", label: "Wait" },
+];
+
+const defaultAction = {
+  id: "",
+  type: "click",
+  selector: "xpath",
+  xpath: "",
+  optionText: "",
+  duration: 2000,
+};
+
+export interface ScraperAction {
+  id: string;
+  type: "click" | "selectOption" | "select" | "wait";
+  selector: "xpath" | "css";
+  xpath: string;
+  optionText?: string;
+  duration?: number;
+}
 
 interface ScraperActionsProps {
   value: ScraperAction[];
   onChange: (value: ScraperAction[]) => void;
   disabled?: boolean;
   url: string;
+  onTest?: (
+    url: string,
+    actions: ScraperAction[],
+    cookieBannerXPaths: string[]
+  ) => Promise<{
+    price: number;
+    error: {
+      text: string;
+      index: number;
+      screenshot: string | null;
+    };
+  }>;
 }
 
 export function ScraperActions({
@@ -31,6 +89,7 @@ export function ScraperActions({
   onChange,
   disabled = false,
   url,
+  onTest,
 }: ScraperActionsProps) {
   const [testResult, setTestResult] = useState<{
     success: boolean;
@@ -43,6 +102,13 @@ export function ScraperActions({
   } | null>(null);
   const [testing, setTesting] = useState(false);
   const { toast } = useToast();
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const handleAddAction = () => {
     const newAction = {
@@ -61,7 +127,7 @@ export function ScraperActions({
   const handleUpdateAction = (
     index: number,
     field: string,
-    fieldValue: string
+    fieldValue: string | number
   ) => {
     const newActions = [...value];
     newActions[index] = {
@@ -69,6 +135,17 @@ export function ScraperActions({
       [field]: fieldValue,
     };
     onChange(newActions);
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      const oldIndex = value.findIndex((item) => item.id === active.id);
+      const newIndex = value.findIndex((item) => item.id === over.id);
+
+      onChange(arrayMove(value, oldIndex, newIndex));
+    }
   };
 
   const handleTestScraper = async () => {
@@ -90,11 +167,20 @@ export function ScraperActions({
       return;
     }
 
+    if (!onTest) {
+      toast({
+        title: "Error",
+        description: "Test function not provided",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setTesting(true);
     setTestResult(null);
 
     try {
-      const result = await testScraper(url, value);
+      const result = await onTest(url, value);
 
       if (
         result &&
@@ -129,7 +215,7 @@ export function ScraperActions({
         setTestResult({
           success: false,
           error: {
-            index: 0,
+            index: -1,
             text: "Unexpected response format from server",
           },
         });
@@ -144,8 +230,11 @@ export function ScraperActions({
       setTestResult({
         success: false,
         error: {
-          index: 0,
-          text: "An unexpected error occurred",
+          index: -1,
+          text:
+            error instanceof Error
+              ? error.message
+              : "An unexpected error occurred",
         },
       });
 
@@ -161,97 +250,28 @@ export function ScraperActions({
 
   return (
     <div className="space-y-4">
-      {value.map((action, index) => (
-        <div key={action.id} className="space-y-4">
-          <Card
-            className={`border ${
-              testResult?.error?.index === index ? "border-red-500" : ""
-            }`}
-          >
-            <CardContent className="pt-4">
-              <div className="flex justify-between items-center mb-4">
-                <div className="flex items-center">
-                  {testResult?.error?.index === index && (
-                    <AlertTriangle className="h-5 w-5 text-red-500 mr-2" />
-                  )}
-                  <h3 className="font-medium">Action {index + 1}</h3>
-                </div>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => handleRemoveAction(index)}
-                  disabled={disabled}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-
-              <div className="grid gap-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Select
-                    disabled={disabled}
-                    value={action.type}
-                    onValueChange={(value) =>
-                      handleUpdateAction(index, "type", value)
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select action type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {actionTypes.map((type) => (
-                        <SelectItem key={type.value} value={type.value}>
-                          {type.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-
-                  <Select
-                    disabled={disabled}
-                    value={action.selector}
-                    onValueChange={(value) =>
-                      handleUpdateAction(index, "selector", value)
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select selector type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="css">By CSS</SelectItem>
-                      <SelectItem value="xpath">By XPATH</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <Input
-                  placeholder="XPATH"
-                  value={action.xpath}
-                  onChange={(e) =>
-                    handleUpdateAction(index, "xpath", e.target.value)
-                  }
-                  disabled={disabled}
-                />
-
-                {action.type === "selectOption" && (
-                  <Input
-                    placeholder="Option Text"
-                    value={action.optionText || ""}
-                    onChange={(e) =>
-                      handleUpdateAction(index, "optionText", e.target.value)
-                    }
-                    disabled={disabled}
-                  />
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {testResult?.error?.index === index && (
-            <ErrorDisplay error={testResult.error} />
-          )}
-        </div>
-      ))}
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext
+          items={value.map((item) => item.id)}
+          strategy={verticalListSortingStrategy}
+        >
+          {value.map((action, index) => (
+            <SortableActionItem
+              key={action.id}
+              action={action}
+              index={index}
+              disabled={disabled}
+              testResult={testResult}
+              onRemove={handleRemoveAction}
+              onUpdate={handleUpdateAction}
+            />
+          ))}
+        </SortableContext>
+      </DndContext>
 
       <Button
         variant="outline"
@@ -281,7 +301,7 @@ export function ScraperActions({
             <div className="flex-grow space-y-4">
               <Button
                 onClick={handleTestScraper}
-                disabled={disabled || testing || value.length === 0}
+                disabled={disabled || testing || value.length === 0 || !onTest}
                 className="w-full"
                 type="button"
               >
@@ -295,11 +315,11 @@ export function ScraperActions({
                 >
                   <div className="flex items-center">
                     <Check className="h-4 w-4 mr-2 text-green-500" />
-                    <span className="font-medium">
+                    <AlertDescription className="font-medium">
                       {testResult.price === 0
                         ? "No price data retrieved"
                         : `Retrieved Price: €${testResult.price}`}
-                    </span>
+                    </AlertDescription>
                   </div>
                 </Alert>
               )}
@@ -311,26 +331,166 @@ export function ScraperActions({
   );
 }
 
+interface SortableActionItemProps {
+  action: ScraperAction;
+  index: number;
+  disabled: boolean;
+  testResult: any;
+  onRemove: (index: number) => void;
+  onUpdate: (index: number, field: string, value: string | number) => void;
+}
+
+function SortableActionItem({
+  action,
+  index,
+  disabled,
+  testResult,
+  onRemove,
+  onUpdate,
+}: SortableActionItemProps) {
+  const { attributes, listeners, setNodeRef, transform, transition } =
+    useSortable({ id: action.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  const isError = testResult?.error?.index === index;
+
+  return (
+    <div className="space-y-4">
+      <div ref={setNodeRef} style={style} {...attributes}>
+        <Card className={`border ${isError ? "border-destructive" : ""}`}>
+          <CardContent className="pt-4">
+            <div className="flex justify-between items-center mb-4">
+              <div className="flex items-center">
+                {!disabled && (
+                  <button
+                    type="button"
+                    className="mr-2 cursor-grab text-muted-foreground hover:text-foreground"
+                    {...listeners}
+                  >
+                    <GripVertical className="h-5 w-5" />
+                  </button>
+                )}
+                {isError && (
+                  <AlertTriangle className="h-5 w-5 text-destructive mr-2" />
+                )}
+                <h3 className="font-medium">Action {index + 1}</h3>
+              </div>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => onRemove(index)}
+                disabled={disabled}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+
+            <div className="grid gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Select
+                  disabled={disabled}
+                  value={action.type}
+                  onValueChange={(value) => onUpdate(index, "type", value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select action type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {actionTypes.map((type) => (
+                      <SelectItem key={type.value} value={type.value}>
+                        {type.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select
+                  disabled={disabled}
+                  value={action.selector}
+                  onValueChange={(value) => onUpdate(index, "selector", value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select selector type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="xpath">By XPATH</SelectItem>
+                    <SelectItem value="css">By CSS</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <Input
+                placeholder={
+                  action.selector === "xpath" ? "XPATH" : "CSS Selector"
+                }
+                value={action.xpath}
+                onChange={(e) => onUpdate(index, "xpath", e.target.value)}
+                disabled={disabled}
+              />
+
+              {action.type === "selectOption" && (
+                <Input
+                  placeholder="Option Text"
+                  value={action.optionText || ""}
+                  onChange={(e) =>
+                    onUpdate(index, "optionText", e.target.value)
+                  }
+                  disabled={disabled}
+                />
+              )}
+
+              {action.type === "wait" && (
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-muted-foreground" />
+                  <Input
+                    type="number"
+                    placeholder="Duration (ms)"
+                    value={action.duration || 2000}
+                    onChange={(e) =>
+                      onUpdate(
+                        index,
+                        "duration",
+                        Number.parseInt(e.target.value)
+                      )
+                    }
+                    disabled={disabled}
+                  />
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {isError && <ErrorDisplay error={testResult.error} />}
+    </div>
+  );
+}
+
 function ErrorDisplay({
   error,
 }: {
   error: { text: string; screenshot?: string };
 }) {
   return (
-    <div className="border-2 border-red-500 rounded-md overflow-hidden">
-      <div className="bg-red-500 text-white px-3 py-1 flex items-center">
+    <div className="border-2 border-destructive rounded-md overflow-hidden">
+      <div className="bg-destructive text-destructive-foreground px-3 py-1 flex items-center">
         <AlertTriangle className="h-4 w-4 mr-2" />
         <span>Error</span>
       </div>
-      <div className="p-4 bg-red-50">
-        <p className="text-red-700 mb-4">{error.text}</p>
+      <div className="p-4 bg-destructive/10">
+        <p className="text-destructive mb-4">{error.text}</p>
 
         {error.screenshot && (
-          <div className="rounded-md overflow-hidden border border-red-200">
-            <div className="bg-red-500 text-white px-3 py-1 text-sm">
+          <div className="rounded-md overflow-hidden border border-destructive/20">
+            <div className="bg-destructive text-destructive-foreground px-3 py-1 text-sm">
               Error Screenshot
             </div>
-            <div className="bg-white">
+            <div className="bg-background">
               <img
                 src={`data:image/png;base64,${error.screenshot}`}
                 alt="Error Screenshot"

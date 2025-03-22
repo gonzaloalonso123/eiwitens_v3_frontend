@@ -45,6 +45,7 @@ export const productSubtypes: Record<
     { value: "high_caffeine", label: "High Caffeine" },
     { value: "stimulant_free", label: "Stimulant Free" },
     { value: "caffeine_tablets", label: "Caffeine Tablets" },
+    { value: "caffeine_free", label: "Caffeine Free" },
   ],
   vitamins: [
     { value: "multivitamin", label: "Multivitamin" },
