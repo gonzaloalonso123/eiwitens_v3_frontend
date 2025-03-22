@@ -8,6 +8,7 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { scrapeAll } from "@/lib/api-service";
 import Image from "next/image";
 import rogierImage from "@/images/rogier.webp";
+import { migrate } from "@/lib/product-service";
 
 export default function ManagePage() {
   const [loading, setLoading] = useState(false);
@@ -72,6 +73,19 @@ export default function ManagePage() {
                 ) : (
                   "Scrape all products"
                 )}
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => {
+                  // migrate();
+                  toast({
+                    title: "Migrated products",
+                    description: "Products have been migrated",
+                  });
+                }}
+              >
+                Execute migration
               </Button>
             </div>
           </div>

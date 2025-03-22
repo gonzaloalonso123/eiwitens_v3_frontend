@@ -166,3 +166,16 @@ export const removeDiscountFromAllProductsOfStore = async (
   });
   deleteBrandDiscount(store);
 };
+
+export const migrate = async () => {
+  const products = await getProducts();
+  products.forEach(async (product) => {
+    if (product.subtypes.includes("vegan_protein")) {
+      await updateProduct(product.id, {
+        subtypes: product.subtypes.map((subtype) =>
+          subtype === "vegan_protein" ? "vegan_proteine" : subtype
+        ),
+      });
+    }
+  });
+};

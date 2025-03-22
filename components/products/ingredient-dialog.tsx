@@ -96,11 +96,13 @@ export function IngredientDialog({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="custom">+ Create new ingredient</SelectItem>
-                {ingredients.map((ingredient) => (
-                  <SelectItem key={ingredient} value={ingredient}>
-                    {ingredient}
-                  </SelectItem>
-                ))}
+                {ingredients
+                  .sort((a, b) => a.localeCompare(b))
+                  .map((ingredient) => (
+                    <SelectItem key={ingredient} value={ingredient}>
+                      {ingredient}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
           </div>

@@ -16,7 +16,7 @@ export const productSubtypes: Record<
   proteine: [
     { label: "Whey Proteïne", value: "whey_protein" },
     { label: "Whey Isolate", value: "whey_isolate" },
-    { label: "Vegan Proteïne", value: "vegan_protein" },
+    { label: "Vegan Proteïne", value: "vegan_proteine" },
     { label: "Clear whey", value: "clear_whey" },
     { label: "Collageen Eiwit", value: "collagen_protein" },
     { label: "Ei Eiwit", value: "egg_protein" },
