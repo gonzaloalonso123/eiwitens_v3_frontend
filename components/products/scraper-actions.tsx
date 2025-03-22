@@ -258,6 +258,7 @@ export function ScraperActions({
         onClick={handleAddAction}
         disabled={disabled}
         className="w-full"
+        type="button"
       >
         <Plus className="h-4 w-4 mr-2" />
         Add Action

@@ -61,6 +61,7 @@ export const discountTypes = [
 export const actionTypes = [
   { value: "click", label: "Click" },
   { value: "select", label: "Select" },
+  { value: "wait", label: "Wait" },
   { value: "selectOption", label: "Select Option" },
 ];
 
