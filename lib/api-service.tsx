@@ -71,3 +71,20 @@ export const scrapeAll = async () => {
       return false;
     });
 };
+
+export const sendIngredientsImage = async (image: File) => {
+  const formData = new FormData();
+  formData.append("image", image);
+
+  return axios
+    .post(`${backendUrl}/analyze-image`, formData)
+    .then((response) => {
+      return response.data.ingredients;
+    })
+    .catch((error) => {
+      console.error(error);
+      return {
+        ingredients: [],
+      };
+    });
+};

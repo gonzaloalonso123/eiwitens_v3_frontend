@@ -54,6 +54,7 @@ import { IngredientDialog } from "@/components/products/ingredient-dialog";
 import { useDialog } from "@/hooks/use-dialog";
 import { testScraper } from "@/lib/api-service";
 import { ScraperActions } from "./scraper-actions";
+import { AIIngredientDetector } from "./ai-ingredients-detector";
 
 const productSchema = z.object({
   name: z.string().min(1, "Product name is required"),
@@ -569,13 +570,24 @@ function ProductFormContent({
                         </div>
 
                         {!disabled && (
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={onOpenIngredientDialog}
-                          >
-                            Add Ingredient
-                          </Button>
+                          <div className="flex flex-wrap gap-2">
+                            <AIIngredientDetector
+                              onIngredientsDetected={(detectedIngredients) => {
+                                const currentIngredients = field.value || [];
+                                field.onChange([
+                                  ...currentIngredients,
+                                  ...detectedIngredients,
+                                ]);
+                              }}
+                            />
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={onOpenIngredientDialog}
+                            >
+                              Add Ingredient
+                            </Button>
+                          </div>
                         )}
                       </div>
                     </FormControl>
