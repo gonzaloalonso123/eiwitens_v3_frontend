@@ -13,9 +13,12 @@ import {
   ThumbsUp,
   ChevronLeft,
   ChevronRight,
+  Sparkle,
+  Loader,
 } from "lucide-react";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import type { Product, ScraperAction } from "@/lib/product-service";
+import { testScraper, testScraperAi } from "@/lib/api-service";
 
 export function QuickFixer() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -24,14 +27,7 @@ export function QuickFixer() {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  const setStoredByIndex = (index: number, actions: ScraperAction[]) => {
-    setStoredActions((prev) => {
-      const newActions = [...prev];
-      newActions[index] = actions;
-      return newActions;
-    });
-  };
-
+  // Fetch products that need fixing
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -40,8 +36,6 @@ export function QuickFixer() {
         const toFixProducts = allProducts.filter(
           (product) => product.enabled && product.warning
         );
-
-        // Initialize stored actions for each product
         const initialStoredActions = toFixProducts.map(
           (product) => product.scraper || []
         );
@@ -62,6 +56,14 @@ export function QuickFixer() {
     fetchProducts();
   }, [toast]);
 
+  const setStoredByIndex = (index: number, actions: ScraperAction[]) => {
+    setStoredActions((prev) => {
+      const newActions = [...prev];
+      newActions[index] = actions;
+      return newActions;
+    });
+  };
+
   const save = async () => {
     if (products.length === 0 || !storedActions[currentIndex]?.length) return;
 
@@ -81,7 +83,7 @@ export function QuickFixer() {
         description: "Product fixed successfully",
       });
 
-      // Remove the fixed product from the list
+      // Remove the saved product from the list
       setProducts((prev) => prev.filter((_, index) => index !== currentIndex));
 
       // Adjust current index if needed
@@ -131,6 +133,7 @@ export function QuickFixer() {
       </div>
 
       <FixCard
+        key={`product-${currentIndex}`} // Add key to force re-render when changing products
         product={products[currentIndex]}
         setStoredActions={(actions) => setStoredByIndex(currentIndex, actions)}
         storedActions={storedActions[currentIndex] || []}
@@ -207,6 +210,16 @@ function FixCard({
   storedActions: ScraperAction[];
 }) {
   const { toast } = useToast();
+  const [temporaryAiActions, setTemporaryAiActions] = useState<{
+    generatedActions: ScraperAction[];
+    price: number;
+  } | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  // Reset AI detection results when component mounts (new product is shown)
+  useEffect(() => {
+    setTemporaryAiActions(null);
+  }, [product.id]);
 
   const copyUrl = () => {
     navigator.clipboard.writeText(product.url);
@@ -214,6 +227,54 @@ function FixCard({
       title: "URL Copied",
       description: "Product URL has been copied to clipboard",
     });
+  };
+
+  const handleTryWithAI = async () => {
+    try {
+      setLoading(true);
+      const response = await testScraperAi(
+        product.url,
+        product.cookieBannerXPaths
+      );
+      setTemporaryAiActions(response);
+    } catch (error) {
+      console.error("Error testing with AI:", error);
+      toast({
+        title: "Error",
+        description: "Failed to test with AI",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleTestScraper = async () => {
+    try {
+      return await testScraper(
+        product.url,
+        storedActions,
+        product.cookieBannerXPaths
+      );
+    } catch (error) {
+      console.error("Error testing scraper:", error);
+      toast({
+        title: "Error",
+        description: "Failed to test scraper",
+        variant: "destructive",
+      });
+      return null;
+    }
+  };
+
+  const applyAiActions = () => {
+    if (temporaryAiActions?.generatedActions) {
+      setStoredActions(temporaryAiActions.generatedActions);
+      toast({
+        title: "AI Actions Applied",
+        description: "AI-detected actions have been applied",
+      });
+    }
   };
 
   return (
@@ -233,6 +294,18 @@ function FixCard({
               <a href={product.url} target="_blank" rel="noopener noreferrer">
                 <ExternalLink className="h-4 w-4" />
               </a>
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleTryWithAI}
+              disabled={loading}
+            >
+              {loading ? "Processing" : "Try with AI"}
+              {loading ? (
+                <Loader className="ml-2 animate-spin h-4 w-4" />
+              ) : (
+                <Sparkle className="ml-2 h-4 w-4" />
+              )}
             </Button>
           </div>
         </div>
@@ -260,12 +333,37 @@ function FixCard({
             </div>
           </div>
 
+          {temporaryAiActions && (
+            <div className="bg-green-100 p-4 rounded-md">
+              <p className="text-sm font-medium mb-2">AI Detected Actions</p>
+              {temporaryAiActions.generatedActions?.map((action, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground p-1 rounded-md border">
+                    {action.selector} :
+                  </span>
+                  <span className="text-sm text-muted-foreground">
+                    {action.xpath}
+                  </span>
+                </div>
+              ))}
+              <p className="text-sm font-medium mt-2">AI Detected Price</p>
+              <p className="text-sm text-muted-foreground">
+                €{temporaryAiActions.price}
+              </p>
+
+              <Button className="mx-auto mt-4 block" onClick={applyAiActions}>
+                Use AI Actions
+              </Button>
+            </div>
+          )}
+
           <div className="pt-4">
             <p className="text-sm font-medium mb-4">Scraper Actions</p>
             <ScraperActions
               value={storedActions}
               onChange={setStoredActions}
               url={product.url}
+              onTest={handleTestScraper}
             />
           </div>
         </div>

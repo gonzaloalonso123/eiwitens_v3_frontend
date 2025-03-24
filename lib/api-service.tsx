@@ -1,6 +1,4 @@
 import axios from "axios";
-
-// Use NEXT_PUBLIC prefix for client-side environment variables in Next.js
 const backendUrl = process.env.NEXT_PUBLIC_API_URL;
 
 export const getStatus = async () => {
@@ -31,17 +29,20 @@ export const testScraper = async (
     })
     .then((response) => {
       return response.data;
+    });
+};
+
+export const testScraperAi = async (
+  url: string,
+  cookieBannerXPaths: string[]
+) => {
+  return axios
+    .post(`${backendUrl}/test-ai`, {
+      url,
+      cookieBannerXPaths,
     })
-    .catch((error) => {
-      console.error(error);
-      return {
-        price: 0,
-        error: {
-          text: error.message || "Failed to connect to the server",
-          index: 0,
-          screenshot: null,
-        },
-      };
+    .then((response) => {
+      return response.data;
     });
 };
 

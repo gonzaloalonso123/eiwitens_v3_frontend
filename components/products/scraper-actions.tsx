@@ -155,19 +155,6 @@ export function ScraperActions({
   };
 
   const handleUpdateWithAiActions = (generatedActions) => {
-    if (
-      !generatedActions ||
-      !Array.isArray(generatedActions) ||
-      generatedActions.length === 0
-    ) {
-      toast({
-        title: "Error",
-        description: "No AI-generated actions available",
-        variant: "destructive",
-      });
-      return;
-    }
-
     const formattedActions = generatedActions.map((action) => ({
       ...action,
       id: action.id || uuidv4(),
@@ -179,134 +166,15 @@ export function ScraperActions({
     if (onUpdateWithAiActions) {
       onUpdateWithAiActions(formattedActions);
     }
-
-    toast({
-      title: "Success",
-      description: "Scraper actions updated with AI-generated actions",
-    });
   };
 
   const handleTestScraper = async () => {
-    if (!url) {
-      toast({
-        title: "Error",
-        description: "Please enter a URL before testing the scraper",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (value.length === 0) {
-      toast({
-        title: "Error",
-        description: "Please add at least one scraper action",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!onTest) {
-      toast({
-        title: "Error",
-        description: "Test function not provided",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setTesting(true);
     setTestResult(null);
 
     try {
       const result = await onTest(url, value);
-
-      if (
-        result.generatedActions &&
-        Array.isArray(result.generatedActions) &&
-        result.generatedActions.length > 0
-      ) {
-        setTestResult({
-          success: true,
-          price: result.price,
-          generatedActions: result.generatedActions,
-        });
-
-        toast({
-          title: "AI-Generated Actions",
-          description:
-            "The AI found a better way to extract the price. Click below to use the AI-generated action.",
-          action: (
-            <Button
-              variant="outline"
-              size="sm"
-              type="button"
-              onClick={() => handleUpdateWithAiActions(result.generatedActions)}
-            >
-              Use AI Action
-            </Button>
-          ),
-        });
-      } else if (
-        result &&
-        result.price !== undefined &&
-        (!result.error || result.error.index === -1)
-      ) {
-        setTestResult({
-          success: true,
-          price: result.price,
-        });
-
-        toast({
-          title: "Success",
-          description: "Scraper test completed successfully",
-        });
-      } else if (result && result.error) {
-        setTestResult({
-          success: false,
-          error: {
-            index: result.error.index,
-            text: result.error.text || "Failed to execute scraper actions",
-            screenshot: result.error.screenshot,
-          },
-        });
-
-        toast({
-          title: "Error",
-          description: "Scraper test failed",
-          variant: "destructive",
-        });
-      } else {
-        setTestResult({
-          success: false,
-          error: {
-            index: -1,
-            text: "Unexpected response format from server",
-          },
-        });
-
-        toast({
-          title: "Error",
-          description: "Unexpected response from server",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      setTestResult({
-        success: false,
-        error: {
-          index: -1,
-          text:
-            error instanceof Error
-              ? error.message
-              : "An unexpected error occurred",
-        },
-      });
-
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred while testing the scraper",
-        variant: "destructive",
-      });
+      setTestResult({ success: !!result.error, ...result });
     } finally {
       setTesting(false);
     }
