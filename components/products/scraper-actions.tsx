@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Trash2,
@@ -21,6 +21,7 @@ import {
   GripVertical,
   Clock,
   Wand2,
+  TriangleAlert,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -174,7 +175,7 @@ export function ScraperActions({
 
     try {
       const result = await onTest(url, value);
-      setTestResult({ success: !!result.error, ...result });
+      setTestResult({ success: result.price, ...result });
     } finally {
       setTesting(false);
     }
@@ -217,7 +218,7 @@ export function ScraperActions({
       </Button>
 
       <Card>
-        <CardContent className="pt-4">
+        <CardContent className="pt-4 space-y-10">
           <div className="flex flex-col md:flex-row gap-4 items-center">
             <div className="flex-shrink-0">
               <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center">
@@ -241,7 +242,7 @@ export function ScraperActions({
                 {testing ? "Testing..." : "Test Scraper Actions"}
               </Button>
 
-              {testResult && testResult.success && (
+              {testResult && testResult.success && testResult.price != 0 && (
                 <Alert
                   variant="default"
                   className="bg-green-50 border-green-200"
@@ -258,19 +259,32 @@ export function ScraperActions({
               )}
             </div>
           </div>
+          {testResult?.generatedActions?.length > 0 && (
+            <div>
+              <p className="text-gray-500">
+                The AI has generated the following actions based on the page
+                content. You can use these actions to replace the existing ones.
+              </p>
+              <div className="flex gap-4 bg-yellow-200 p-2 rounded-md border border-yellow-400 items-center">
+                <TriangleAlert className="h-8 w-8 text-primary mt-4" />
+                This means the scraper has failed, make sure to try the provided
+                solution before continuing.
+              </div>
+              <Button
+                onClick={() =>
+                  handleUpdateWithAiActions(testResult.generatedActions)
+                }
+                variant="outline"
+                className="mt-2"
+                type="button"
+              >
+                <Wand2 className="h-4 w-4 mr-2" />
+                Use AI-Generated Action
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
-      {testResult?.generatedActions && (
-        <Button
-          onClick={() => handleUpdateWithAiActions(testResult.generatedActions)}
-          variant="outline"
-          className="mt-2"
-          type="button"
-        >
-          <Wand2 className="h-4 w-4 mr-2" />
-          Use AI-Generated Action
-        </Button>
-      )}
     </div>
   );
 }

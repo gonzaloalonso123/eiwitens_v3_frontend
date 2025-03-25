@@ -26,8 +26,6 @@ export function QuickFixer() {
   const [storedActions, setStoredActions] = useState<ScraperAction[][]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-
-  // Fetch products that need fixing
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -82,11 +80,7 @@ export function QuickFixer() {
         title: "Success",
         description: "Product fixed successfully",
       });
-
-      // Remove the saved product from the list
       setProducts((prev) => prev.filter((_, index) => index !== currentIndex));
-
-      // Adjust current index if needed
       if (currentIndex >= products.length - 1) {
         setCurrentIndex(Math.max(0, products.length - 2));
       }
@@ -133,7 +127,7 @@ export function QuickFixer() {
       </div>
 
       <FixCard
-        key={`product-${currentIndex}`} // Add key to force re-render when changing products
+        key={`product-${currentIndex}`}
         product={products[currentIndex]}
         setStoredActions={(actions) => setStoredByIndex(currentIndex, actions)}
         storedActions={storedActions[currentIndex] || []}
@@ -215,8 +209,6 @@ function FixCard({
     price: number;
   } | null>(null);
   const [loading, setLoading] = useState(false);
-
-  // Reset AI detection results when component mounts (new product is shown)
   useEffect(() => {
     setTemporaryAiActions(null);
   }, [product.id]);

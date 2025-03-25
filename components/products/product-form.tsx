@@ -76,7 +76,7 @@ const productSchema = z.object({
   price: z.coerce.number().min(0, "Price must be a positive number"),
   discount_type: z.string().default("none"),
   discount_code: z.string().default(""),
-  discount_value: z.string().default(""),
+  discount_value: z.string().default("").nullish(),
   enabled: z.boolean().default(true),
   enabled_top10: z.boolean().default(true),
   scrape_enabled: z.boolean().default(true),
@@ -182,7 +182,6 @@ export function ProductForm({
     }
   };
 
-  // Handle product duplication
   const duplicateProduct = () => {
     if (!initialData) return;
 
@@ -193,8 +192,6 @@ export function ProductForm({
     };
 
     initialData.id = undefined;
-
-    // Reset the form with the duplicated data
     form.reset(duplicatedProduct as any);
     setDisabled(false);
 
