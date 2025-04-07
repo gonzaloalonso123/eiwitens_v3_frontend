@@ -9,10 +9,7 @@ export const productTypes = [
   { value: "other", label: "Other" },
 ];
 
-export const productSubtypes: Record<
-  string,
-  { value: string; label: string }[]
-> = {
+export const productSubtypes: Record<string, { value: string; label: string }[]> = {
   proteine: [
     { label: "Whey Proteïne", value: "whey_protein" },
     { label: "Whey Isolate", value: "whey_isolate" },
@@ -31,6 +28,7 @@ export const productSubtypes: Record<
     { label: "Protein Coffee", value: "protein_coffee" },
     { label: "Whey Hydro", value: "whey_hydro" },
     { label: "Whey Concentraat", value: "whey_concentrate" },
+    { label: "Collageen eiwit", value: "collageen-eiwit" },
   ],
   creatine: [
     { value: "monohydrate", label: "Monohydrate" },
