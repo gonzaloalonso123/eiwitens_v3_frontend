@@ -1,13 +1,4 @@
-import {
-  addDoc,
-  collection,
-  deleteDoc,
-  doc,
-  getDoc,
-  getDocs,
-  updateDoc,
-  setDoc,
-} from "firebase/firestore";
+import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, updateDoc, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { v4 as uuidv4 } from "uuid";
 
@@ -31,6 +22,8 @@ export interface Product {
   beta_alanine_per_100g?: string;
   citrulline_per_100g?: string;
   tyrosine_per_100g?: string;
+  dose?: string;
+  price_per_dose?: string;
   scrape_enabled: boolean;
   discount_code: string;
   ammount: string;
@@ -91,17 +84,12 @@ export const getBrandDiscounts = async (): Promise<BrandDiscount[]> => {
   return discounts;
 };
 
-export const createProduct = async (
-  product: Omit<Product, "id">
-): Promise<void> => {
+export const createProduct = async (product: Omit<Product, "id">): Promise<void> => {
   const productsRef = collection(db, "products");
   await addDoc(productsRef, product);
 };
 
-export const createBrandDiscount = async (
-  discount: Omit<BrandDiscount, "id">,
-  brand: string
-): Promise<void> => {
+export const createBrandDiscount = async (discount: Omit<BrandDiscount, "id">, brand: string): Promise<void> => {
   await setDoc(doc(db, "brand_discounts", brand), {
     ...discount,
   });
@@ -115,10 +103,7 @@ export const deleteBrandDiscount = async (brand: string): Promise<void> => {
   await deleteDoc(doc(db, "brand_discounts", brand));
 };
 
-export const updateProduct = async (
-  id: string,
-  product: Partial<Product>
-): Promise<void> => {
+export const updateProduct = async (id: string, product: Partial<Product>): Promise<void> => {
   const productRef = doc(db, "products", id);
   await updateDoc(productRef, product).catch((error) => {
     console.error("Error updating document: ", error);
@@ -154,9 +139,7 @@ export const applyDiscountToAllProductsOfStore = async (
   createBrandDiscount({ discount_type, discount_value, discount_code }, store);
 };
 
-export const removeDiscountFromAllProductsOfStore = async (
-  store: string
-): Promise<void> => {
+export const removeDiscountFromAllProductsOfStore = async (store: string): Promise<void> => {
   const products = await getProducts();
   products.forEach(async (product) => {
     if (product.store === store && product.id) {
@@ -177,10 +160,14 @@ export const migrate = async () => {
 
   for (const product of products) {
     try {
-      const updateData: any = {
-        cookieBannerXPaths: defaultCookieBannerXPaths,
+      const newProduct = {
+        subtypes: product.subtypes.map((s) => {
+          if (s === "protein_milkshake") return "proteine_milkshake";
+          if (s === "whey_protein") return "whey_proteine";
+          else return s;
+        }),
       };
-      await updateProduct(product.id, updateData);
+      await updateProduct(product.id, newProduct);
       migratedCount++;
       console.log(`Migrated product: ${product.name} (${product.id})`);
     } catch (error) {
@@ -188,7 +175,5 @@ export const migrate = async () => {
     }
   }
 
-  console.log(
-    `Migration completed. ${migratedCount} of ${products.length} products migrated.`
-  );
+  console.log(`Migration completed. ${migratedCount} of ${products.length} products migrated.`);
 };

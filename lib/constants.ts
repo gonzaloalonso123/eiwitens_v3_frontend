@@ -11,7 +11,7 @@ export const productTypes = [
 
 export const productSubtypes: Record<string, { value: string; label: string }[]> = {
   proteine: [
-    { label: "Whey Proteïne", value: "whey_protein" },
+    { label: "Whey Proteïne", value: "whey_proteine" },
     { label: "Whey Isolate", value: "whey_isolate" },
     { label: "Vegan Proteïne", value: "vegan_proteine" },
     { label: "Clear whey", value: "clear_whey" },
@@ -22,13 +22,13 @@ export const productSubtypes: Record<string, { value: string; label: string }[]>
     { label: "Biologische eiwitpoeder", value: "organic_protein" },
     { label: "Paleo eiwitpoeder", value: "paleo_protein" },
     { label: "Eiwitpoeder Zonder Zoetstof", value: "unsweetened_protein" },
-    { label: "Proteïne Milkshake", value: "protein_milkshake" },
+    { label: "Proteïne Milkshake", value: "proteine_milkshake" },
     { label: "Lactosevrij proteïne poeder", value: "lactose_free_protein" },
     { label: "Diet Whey", value: "diet_whey" },
     { label: "Protein Coffee", value: "protein_coffee" },
     { label: "Whey Hydro", value: "whey_hydro" },
     { label: "Whey Concentraat", value: "whey_concentrate" },
-    { label: "Collageen eiwit", value: "collageen-eiwit" },
+    { label: "Collageen eiwit", value: "collageen_eiwit" },
   ],
   creatine: [
     { value: "monohydrate", label: "Monohydrate" },

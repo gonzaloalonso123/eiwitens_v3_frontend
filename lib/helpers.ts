@@ -34,12 +34,7 @@ export const makeCalculations = (product: Product): void => {
     }
   }
 
-  if (
-    product.type === "weight_gainer" &&
-    product.calories_per_100g &&
-    product.ammount &&
-    product.price
-  ) {
+  if (product.type === "weight_gainer" && product.calories_per_100g && product.ammount && product.price) {
     const caloriesAmount = Number.parseFloat(product.calories_per_100g);
     const totalAmount = Number.parseFloat(product.ammount);
     const price = Number.parseFloat(product.price.toString());
@@ -48,5 +43,13 @@ export const makeCalculations = (product: Product): void => {
     const pricePerCalories = (price / totalCalories) * 100;
 
     product.price_per_100_calories = pricePerCalories.toFixed(2);
+  }
+  if (product.type == "preworkout" && product.dose && product.ammount && product.price) {
+    const dose = Number.parseFloat(product.dose);
+    const totalAmount = Number.parseFloat(product.ammount);
+    const price = Number.parseFloat(product.price.toString());
+    const totalDoses = totalAmount / dose;
+    const pricePerDose = price / totalDoses;
+    product.price_per_dose = pricePerDose.toFixed(2);
   }
 };

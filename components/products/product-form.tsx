@@ -4,50 +4,19 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import {
-  type Product,
-  createProduct,
-  updateProduct,
-} from "@/lib/product-service";
+import { type Product, createProduct, updateProduct } from "@/lib/product-service";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/components/ui/use-toast";
-import {
-  productTypes,
-  productSubtypes,
-  discountTypes,
-  defaultProduct,
-} from "@/lib/constants";
+import { productTypes, productSubtypes, discountTypes, defaultProduct } from "@/lib/constants";
 import { makeCalculations } from "@/lib/helpers";
-import {
-  Edit,
-  Save,
-  AlertTriangle,
-  Copy,
-  Plus,
-  Trash2,
-  Info,
-} from "lucide-react";
+import { Edit, Save, AlertTriangle, Copy, Plus, Trash2, Info } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useIngredients } from "@/hooks/use-ingredients";
 import { IngredientDialog } from "@/components/products/ingredient-dialog";
@@ -103,6 +72,7 @@ const productSchema = z.object({
     )
     .default([]),
   price_for_element_gram: z.string().optional(),
+  price_per_dose: z.string().optional(),
   price_per_100_calories: z.string().optional(),
   count_clicked: z.array(z.object({ date: z.string() })).default([]),
   trustPilotScore: z.number().optional(),
@@ -115,10 +85,7 @@ interface ProductFormProps {
   isEditing?: boolean;
 }
 
-export function ProductForm({
-  initialData,
-  isEditing = false,
-}: ProductFormProps) {
+export function ProductForm({ initialData, isEditing = false }: ProductFormProps) {
   const [disabled, setDisabled] = useState(isEditing);
   const [activeTab, setActiveTab] = useState("info");
   const { toast } = useToast();
@@ -141,20 +108,20 @@ export function ProductForm({
     if (watchPrice) {
       const values = form.getValues();
       makeCalculations(values as any);
-      form.setValue(
-        "price_for_element_gram",
-        values.price_for_element_gram || ""
-      );
+      form.setValue("price_for_element_gram", values.price_for_element_gram || "");
       if (values.price_per_100_calories) {
         form.setValue("price_per_100_calories", values.price_per_100_calories);
+      }
+
+      console.log(values);
+      if (values.price_per_dose) {
+        form.setValue("price_per_dose", values.price_per_dose);
       }
     }
   }, [watchPrice, form]);
 
   const onSubmit = async (data: ProductFormValues) => {
-    Object.keys(data).forEach(
-      (key) => data[key] === undefined && delete data[key]
-    );
+    Object.keys(data).forEach((key) => data[key] === undefined && delete data[key]);
 
     try {
       if (initialData?.id) {
@@ -201,10 +168,7 @@ export function ProductForm({
     });
   };
 
-  const handleAddIngredient = (ingredient: {
-    name: string;
-    amount: number;
-  }) => {
+  const handleAddIngredient = (ingredient: { name: string; amount: number }) => {
     const currentIngredients = form.getValues("ingredients") || [];
     form.setValue("ingredients", [...currentIngredients, ingredient]);
   };
@@ -213,12 +177,8 @@ export function ProductForm({
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-bold">
-            {initialData?.id ? "Edit Product" : "Create Product"}
-          </h1>
-          {initialData?.warning && (
-            <AlertTriangle className="h-5 w-5 text-amber-500" />
-          )}
+          <h1 className="text-2xl font-bold">{initialData?.id ? "Edit Product" : "Create Product"}</h1>
+          {initialData?.warning && <AlertTriangle className="h-5 w-5 text-amber-500" />}
         </div>
 
         {initialData?.id && (
@@ -301,10 +261,7 @@ function ProductFormContent({
   const handleAddCookieBannerXPath = () => {
     if (newCookieBannerXPath.trim()) {
       const currentXPaths = form.getValues("cookieBannerXPaths") || [];
-      form.setValue("cookieBannerXPaths", [
-        ...currentXPaths,
-        newCookieBannerXPath.trim(),
-      ]);
+      form.setValue("cookieBannerXPaths", [...currentXPaths, newCookieBannerXPath.trim()]);
       setNewCookieBannerXPath("");
     }
   };
@@ -447,11 +404,7 @@ function ProductFormContent({
                               if (checked) {
                                 field.onChange([...currentValues, value]);
                               } else {
-                                field.onChange(
-                                  currentValues.filter(
-                                    (v: string) => v !== value
-                                  )
-                                );
+                                field.onChange(currentValues.filter((v: string) => v !== value));
                               }
                             }}
                             className="sr-only"
@@ -532,72 +485,75 @@ function ProductFormContent({
             )}
 
             {watchType === "preworkout" && (
-              <FormField
-                control={form.control}
-                name="ingredients"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Ingredients</FormLabel>
-                    <FormControl>
-                      <div className="space-y-2">
-                        <div className="flex flex-wrap gap-2">
-                          {(field.value || []).map((element, index) => (
-                            <div
-                              key={index}
-                              className="flex items-center gap-2 bg-secondary p-2 rounded-md"
-                            >
-                              <span>{element.name}</span>
-                              <span className="text-sm text-muted-foreground">
-                                {element.amount}mg
-                              </span>
-                              <button
-                                type="button"
-                                className="text-destructive hover:text-destructive/80"
-                                onClick={() => {
-                                  const newElements = [...(field.value || [])];
-                                  newElements.splice(index, 1);
-                                  field.onChange(newElements);
-                                }}
-                                disabled={disabled}
-                              >
-                                ×
-                              </button>
-                            </div>
-                          ))}
-                        </div>
+              <>
+                <FormField
+                  control={form.control}
+                  name="dose"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Recommended Dose (g)</FormLabel>
+                      <FormControl>
+                        <Input disabled={disabled} {...field} />
+                      </FormControl>
+                      <FormDescription>The recommended serving size in grams</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-                        {!disabled && (
+                <FormField
+                  control={form.control}
+                  name="ingredients"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Ingredients</FormLabel>
+                      <FormControl>
+                        <div className="space-y-2">
                           <div className="flex flex-wrap gap-2">
-                            <AIIngredientDetector
-                              onIngredientsDetected={(detectedIngredients) => {
-                                const currentIngredients = field.value || [];
-                                field.onChange([
-                                  ...currentIngredients,
-                                  ...detectedIngredients,
-                                ]);
-                              }}
-                            />
-                            <Button
-                              type="button"
-                              variant="outline"
-                              onClick={onOpenIngredientDialog}
-                            >
-                              Add Ingredient
-                            </Button>
+                            {(field.value || []).map((element, index) => (
+                              <div key={index} className="flex items-center gap-2 bg-secondary p-2 rounded-md">
+                                <span>{element.name}</span>
+                                <span className="text-sm text-muted-foreground">{element.amount}mg</span>
+                                <button
+                                  type="button"
+                                  className="text-destructive hover:text-destructive/80"
+                                  onClick={() => {
+                                    const newElements = [...(field.value || [])];
+                                    newElements.splice(index, 1);
+                                    field.onChange(newElements);
+                                  }}
+                                  disabled={disabled}
+                                >
+                                  ×
+                                </button>
+                              </div>
+                            ))}
                           </div>
-                        )}
-                      </div>
-                    </FormControl>
-                    <FormDescription>
-                      Add the ingredients and their amounts for this pre-workout
-                      product
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
 
+                          {!disabled && (
+                            <div className="flex flex-wrap gap-2">
+                              <AIIngredientDetector
+                                onIngredientsDetected={(detectedIngredients) => {
+                                  const currentIngredients = field.value || [];
+                                  field.onChange([...currentIngredients, ...detectedIngredients]);
+                                }}
+                              />
+                              <Button type="button" variant="outline" onClick={onOpenIngredientDialog}>
+                                Add Ingredient
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      </FormControl>
+                      <FormDescription>
+                        Add the ingredients and their amounts for this pre-workout product
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </>
+            )}
             <FormField
               control={form.control}
               name="price"
@@ -610,9 +566,7 @@ function ProductFormContent({
                       step="0.01"
                       disabled={disabled}
                       {...field}
-                      onChange={(e) =>
-                        field.onChange(Number.parseFloat(e.target.value) || 0)
-                      }
+                      onChange={(e) => field.onChange(Number.parseFloat(e.target.value) || 0)}
                     />
                   </FormControl>
                   <FormMessage />
@@ -663,11 +617,7 @@ function ProductFormContent({
                       disabled={disabled}
                       {...field}
                       value={field.value || ""}
-                      onChange={(e) =>
-                        field.onChange(
-                          Number.parseFloat(e.target.value) || undefined
-                        )
-                      }
+                      onChange={(e) => field.onChange(Number.parseFloat(e.target.value) || undefined)}
                     />
                   </FormControl>
                   <FormMessage />
@@ -675,36 +625,33 @@ function ProductFormContent({
               )}
             />
 
-            {/* Auto-calculated fields display */}
             {form.getValues("price_for_element_gram") && (
               <div className="border border-primary/20 p-4 rounded-md bg-primary/5">
                 <h3 className="font-medium mb-2">Calculated Values</h3>
-                {(watchType === "proteine" ||
-                  watchType === "weight_gainer") && (
+                {(watchType === "proteine" || watchType === "weight_gainer") && (
                   <div className="flex justify-between">
                     <span>Price per 100g protein:</span>
-                    <span className="font-medium">
-                      €{form.getValues("price_for_element_gram")}
-                    </span>
+                    <span className="font-medium">€{form.getValues("price_for_element_gram")}</span>
                   </div>
                 )}
                 {watchType === "creatine" && (
                   <div className="flex justify-between">
                     <span>Price per 100g creatine:</span>
-                    <span className="font-medium">
-                      €{form.getValues("price_for_element_gram")}
-                    </span>
+                    <span className="font-medium">€{form.getValues("price_for_element_gram")}</span>
                   </div>
                 )}
-                {watchType === "weight_gainer" &&
-                  form.getValues("price_per_100_calories") && (
-                    <div className="flex justify-between mt-1">
-                      <span>Price per 100 calories:</span>
-                      <span className="font-medium">
-                        €{form.getValues("price_per_100_calories")}
-                      </span>
-                    </div>
-                  )}
+                {watchType === "weight_gainer" && form.getValues("price_per_100_calories") && (
+                  <div className="flex justify-between mt-1">
+                    <span>Price per 100 calories:</span>
+                    <span className="font-medium">€{form.getValues("price_per_100_calories")}</span>
+                  </div>
+                )}
+              </div>
+            )}
+            {watchType === "preworkout" && form.getValues("price_per_dose") && (
+              <div className="flex justify-between mt-1">
+                <span>Price per dose:</span>
+                <span className="font-medium">€{form.getValues("price_per_dose")}</span>
               </div>
             )}
           </CardContent>
@@ -786,17 +733,11 @@ function ProductFormContent({
               render={({ field }) => (
                 <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                   <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                      disabled={disabled}
-                    />
+                    <Checkbox checked={field.value} onCheckedChange={field.onChange} disabled={disabled} />
                   </FormControl>
                   <div className="space-y-1 leading-none">
                     <FormLabel>Enabled</FormLabel>
-                    <FormDescription>
-                      Show this product on the website
-                    </FormDescription>
+                    <FormDescription>Show this product on the website</FormDescription>
                   </div>
                 </FormItem>
               )}
@@ -808,17 +749,11 @@ function ProductFormContent({
               render={({ field }) => (
                 <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                   <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                      disabled={disabled}
-                    />
+                    <Checkbox checked={field.value} onCheckedChange={field.onChange} disabled={disabled} />
                   </FormControl>
                   <div className="space-y-1 leading-none">
                     <FormLabel>Enabled in Top 10</FormLabel>
-                    <FormDescription>
-                      Include this product in top 10 listings
-                    </FormDescription>
+                    <FormDescription>Include this product in top 10 listings</FormDescription>
                   </div>
                 </FormItem>
               )}
@@ -830,17 +765,11 @@ function ProductFormContent({
               render={({ field }) => (
                 <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                   <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                      disabled={disabled}
-                    />
+                    <Checkbox checked={field.value} onCheckedChange={field.onChange} disabled={disabled} />
                   </FormControl>
                   <div className="space-y-1 leading-none">
                     <FormLabel>Scraping Enabled</FormLabel>
-                    <FormDescription>
-                      Allow automatic price scraping for this product
-                    </FormDescription>
+                    <FormDescription>Allow automatic price scraping for this product</FormDescription>
                   </div>
                 </FormItem>
               )}
@@ -852,17 +781,11 @@ function ProductFormContent({
               render={({ field }) => (
                 <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                   <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                      disabled={disabled}
-                    />
+                    <Checkbox checked={field.value} onCheckedChange={field.onChange} disabled={disabled} />
                   </FormControl>
                   <div className="space-y-1 leading-none">
                     <FormLabel>Warning Flag</FormLabel>
-                    <FormDescription>
-                      Mark this product with a warning flag
-                    </FormDescription>
+                    <FormDescription>Mark this product with a warning flag</FormDescription>
                   </div>
                 </FormItem>
               )}
@@ -879,9 +802,8 @@ function ProductFormContent({
             <div className="space-y-4">
               <h3 className="text-lg font-medium">Cookie Banner XPaths</h3>
               <p className="text-sm text-muted-foreground">
-                Add XPaths to automatically handle cookie consent banners during
-                scraping. Normally used XPATHS are already supported, only use
-                if this site has a different cookie banner.
+                Add XPaths to automatically handle cookie consent banners during scraping. Normally used XPATHS are
+                already supported, only use if this site has a different cookie banner.
               </p>
               <p className="text-xs text-muted-foreground flex flex-col p-2 border rounded-xl">
                 <span className="flex gap-1 items-center">
@@ -912,9 +834,7 @@ function ProductFormContent({
                             <Input
                               placeholder="XPATH for cookie banner accept button"
                               value={newCookieBannerXPath}
-                              onChange={(e) =>
-                                setNewCookieBannerXPath(e.target.value)
-                              }
+                              onChange={(e) => setNewCookieBannerXPath(e.target.value)}
                             />
                             <Button
                               onClick={handleAddCookieBannerXPath}
@@ -929,21 +849,10 @@ function ProductFormContent({
 
                         <div className="space-y-2">
                           {(field.value || []).map((xpath, index) => (
-                            <div
-                              key={index}
-                              className="flex items-center gap-2 p-2 bg-muted rounded-md"
-                            >
-                              <div className="flex-1 text-sm font-mono overflow-hidden text-ellipsis">
-                                {xpath}
-                              </div>
+                            <div key={index} className="flex items-center gap-2 p-2 bg-muted rounded-md">
+                              <div className="flex-1 text-sm font-mono overflow-hidden text-ellipsis">{xpath}</div>
                               {!disabled && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() =>
-                                    handleRemoveCookieBannerXPath(index)
-                                  }
-                                >
+                                <Button variant="ghost" size="sm" onClick={() => handleRemoveCookieBannerXPath(index)}>
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
                               )}
@@ -953,8 +862,7 @@ function ProductFormContent({
                       </div>
                     </FormControl>
                     <FormDescription>
-                      These XPaths will be used to automatically click cookie
-                      consent buttons during scraping
+                      These XPaths will be used to automatically click cookie consent buttons during scraping
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -966,8 +874,7 @@ function ProductFormContent({
             <div className="space-y-4">
               <h3 className="text-lg font-medium">Scraper Actions</h3>
               <p className="text-sm text-muted-foreground">
-                Configure the sequence of actions to extract price data from the
-                product page
+                Configure the sequence of actions to extract price data from the product page
               </p>
 
               <FormField
@@ -985,8 +892,8 @@ function ProductFormContent({
                       />
                     </FormControl>
                     <FormDescription>
-                      Define the sequence of actions to extract price data from
-                      the product page. Drag and drop to reorder.
+                      Define the sequence of actions to extract price data from the product page. Drag and drop to
+                      reorder.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -1039,20 +946,14 @@ function ProductStats({ product }: { product: Product }) {
           <div className="grid gap-4 md:grid-cols-2">
             <div>
               <h3 className="font-medium mb-2">Click Statistics</h3>
-              <div className="text-2xl font-bold">
-                {product.count_clicked?.length || 0}
-              </div>
+              <div className="text-2xl font-bold">{product.count_clicked?.length || 0}</div>
               <p className="text-sm text-muted-foreground">Total clicks</p>
             </div>
 
             <div>
               <h3 className="font-medium mb-2">Top 10 Appearances</h3>
-              <div className="text-2xl font-bold">
-                {product.count_top10?.length || 0}
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Times appeared in top 10
-              </p>
+              <div className="text-2xl font-bold">{product.count_top10?.length || 0}</div>
+              <p className="text-sm text-muted-foreground">Times appeared in top 10</p>
             </div>
           </div>
 
@@ -1068,9 +969,7 @@ function ProductStats({ product }: { product: Product }) {
           ) : (
             <Alert className="mt-6">
               <AlertTitle>No price history</AlertTitle>
-              <AlertDescription>
-                This product doesn't have any price history data yet.
-              </AlertDescription>
+              <AlertDescription>This product doesn't have any price history data yet.</AlertDescription>
             </Alert>
           )}
         </CardContent>
