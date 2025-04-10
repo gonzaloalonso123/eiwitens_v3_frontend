@@ -4,25 +4,10 @@ import { useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import {
-  Trash2,
-  Plus,
-  AlertTriangle,
-  Check,
-  GripVertical,
-  Clock,
-  Wand2,
-  TriangleAlert,
-} from "lucide-react";
+import { Trash2, Plus, AlertTriangle, Check, GripVertical, Clock, Wand2, TriangleAlert } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
   DndContext,
@@ -131,11 +116,7 @@ export function ScraperActions({
     onChange(newActions);
   };
 
-  const handleUpdateAction = (
-    index: number,
-    field: string,
-    fieldValue: string | number
-  ) => {
+  const handleUpdateAction = (index: number, field: string, fieldValue: string | number) => {
     const newActions = [...value];
     newActions[index] = {
       ...newActions[index],
@@ -183,15 +164,8 @@ export function ScraperActions({
 
   return (
     <div className="space-y-4">
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragEnd={handleDragEnd}
-      >
-        <SortableContext
-          items={value.map((item) => item.id)}
-          strategy={verticalListSortingStrategy}
-        >
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext items={value.map((item) => item.id)} strategy={verticalListSortingStrategy}>
           {value.map((action, index) => (
             <SortableActionItem
               key={action.id}
@@ -206,13 +180,7 @@ export function ScraperActions({
         </SortableContext>
       </DndContext>
 
-      <Button
-        variant="outline"
-        onClick={handleAddAction}
-        disabled={disabled}
-        className="w-full"
-        type="button"
-      >
+      <Button variant="outline" onClick={handleAddAction} disabled={disabled} className="w-full" type="button">
         <Plus className="h-4 w-4 mr-2" />
         Add Action
       </Button>
@@ -222,13 +190,7 @@ export function ScraperActions({
           <div className="flex flex-col md:flex-row gap-4 items-center">
             <div className="flex-shrink-0">
               <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center">
-                <Image
-                  src={Rogier}
-                  alt="Scraper"
-                  width={40}
-                  height={40}
-                  className="scale-x-[-1]"
-                />
+                <Image src={Rogier} alt="Scraper" width={40} height={40} className="scale-x-[-1]" />
               </div>
             </div>
 
@@ -243,37 +205,29 @@ export function ScraperActions({
               </Button>
 
               {testResult && testResult.success && testResult.price != 0 && (
-                <Alert
-                  variant="default"
-                  className="bg-green-50 border-green-200"
-                >
+                <Alert variant="default" className="bg-green-50 border-green-200">
                   <div className="flex items-center">
                     <Check className="h-4 w-4 mr-2 text-green-500" />
                     <AlertDescription className="font-medium">
-                      {testResult.price === 0
-                        ? "No price data retrieved"
-                        : `Retrieved Price: €${testResult.price}`}
+                      {testResult.price === 0 ? "No price data retrieved" : `Retrieved Price: €${testResult.price}`}
                     </AlertDescription>
                   </div>
                 </Alert>
               )}
             </div>
           </div>
-          {testResult?.generatedActions?.length > 0 && (
+          {testResult?.generatedActions?.length > 0 ? (
             <div>
               <p className="text-gray-500">
-                The AI has generated the following actions based on the page
-                content. You can use these actions to replace the existing ones.
+                The AI has generated the following actions based on the page content. You can use these actions to
+                replace the existing ones.
               </p>
               <div className="flex gap-4 bg-yellow-200 p-2 rounded-md border border-yellow-400 items-center">
                 <TriangleAlert className="h-8 w-8 text-primary mt-4" />
-                This means the scraper has failed, make sure to try the provided
-                solution before continuing.
+                This means the scraper has failed, make sure to try the provided solution before continuing.
               </div>
               <Button
-                onClick={() =>
-                  handleUpdateWithAiActions(testResult.generatedActions)
-                }
+                onClick={() => handleUpdateWithAiActions(testResult.generatedActions)}
                 variant="outline"
                 className="mt-2"
                 type="button"
@@ -282,7 +236,7 @@ export function ScraperActions({
                 Use AI-Generated Action
               </Button>
             </div>
-          )}
+          ) : null}
         </CardContent>
       </Card>
     </div>
@@ -298,16 +252,8 @@ interface SortableActionItemProps {
   onUpdate: (index: number, field: string, value: string | number) => void;
 }
 
-function SortableActionItem({
-  action,
-  index,
-  disabled,
-  testResult,
-  onRemove,
-  onUpdate,
-}: SortableActionItemProps) {
-  const { attributes, listeners, setNodeRef, transform, transition } =
-    useSortable({ id: action.id });
+function SortableActionItem({ action, index, disabled, testResult, onRemove, onUpdate }: SortableActionItemProps) {
+  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: action.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -332,18 +278,10 @@ function SortableActionItem({
                     <GripVertical className="h-5 w-5" />
                   </button>
                 )}
-                {isError && (
-                  <AlertTriangle className="h-5 w-5 text-destructive mr-2" />
-                )}
+                {isError && <AlertTriangle className="h-5 w-5 text-destructive mr-2" />}
                 <h3 className="font-medium">Action {index + 1}</h3>
               </div>
-              <Button
-                variant="outline"
-                size="icon"
-                type="button"
-                onClick={() => onRemove(index)}
-                disabled={disabled}
-              >
+              <Button variant="outline" size="icon" type="button" onClick={() => onRemove(index)} disabled={disabled}>
                 <Trash2 className="h-4 w-4" />
               </Button>
             </div>
@@ -383,9 +321,7 @@ function SortableActionItem({
               </div>
 
               <Input
-                placeholder={
-                  action.selector === "xpath" ? "XPATH" : "CSS Selector"
-                }
+                placeholder={action.selector === "xpath" ? "XPATH" : "CSS Selector"}
                 value={action.xpath}
                 onChange={(e) => onUpdate(index, "xpath", e.target.value)}
                 disabled={disabled}
@@ -395,9 +331,7 @@ function SortableActionItem({
                 <Input
                   placeholder="Option Text"
                   value={action.optionText || ""}
-                  onChange={(e) =>
-                    onUpdate(index, "optionText", e.target.value)
-                  }
+                  onChange={(e) => onUpdate(index, "optionText", e.target.value)}
                   disabled={disabled}
                 />
               )}
@@ -409,13 +343,7 @@ function SortableActionItem({
                     type="number"
                     placeholder="Duration (ms)"
                     value={action.duration || 2000}
-                    onChange={(e) =>
-                      onUpdate(
-                        index,
-                        "duration",
-                        Number.parseInt(e.target.value)
-                      )
-                    }
+                    onChange={(e) => onUpdate(index, "duration", Number.parseInt(e.target.value))}
                     disabled={disabled}
                   />
                 </div>
@@ -430,11 +358,7 @@ function SortableActionItem({
   );
 }
 
-function ErrorDisplay({
-  error,
-}: {
-  error: { text: string; screenshot?: string };
-}) {
+function ErrorDisplay({ error }: { error: { text: string; screenshot?: string } }) {
   return (
     <div className="border-2 border-destructive rounded-md overflow-hidden">
       <div className="bg-destructive text-destructive-foreground px-3 py-1 flex items-center">
@@ -446,15 +370,9 @@ function ErrorDisplay({
 
         {error.screenshot && (
           <div className="rounded-md overflow-hidden border border-destructive/20">
-            <div className="bg-destructive text-destructive-foreground px-3 py-1 text-sm">
-              Error Screenshot
-            </div>
+            <div className="bg-destructive text-destructive-foreground px-3 py-1 text-sm">Error Screenshot</div>
             <div className="bg-background">
-              <img
-                src={`data:image/png;base64,${error.screenshot}`}
-                alt="Error Screenshot"
-                className="w-full h-auto"
-              />
+              <img src={`data:image/png;base64,${error.screenshot}`} alt="Error Screenshot" className="w-full h-auto" />
             </div>
           </div>
         )}
