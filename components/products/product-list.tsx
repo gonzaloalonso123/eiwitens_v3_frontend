@@ -1,30 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  getProducts,
-  type Product,
-  deleteProduct,
-} from "@/lib/product-service";
+import { getProducts, type Product, deleteProduct } from "@/lib/product-service";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  ChevronDown,
-  Plus,
-  Search,
-  Trash2,
-  Edit,
-  TriangleAlert,
-} from "lucide-react";
+import { ChevronDown, Plus, Search, Trash2, Edit, TriangleAlert } from "lucide-react";
 import Link from "next/link";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -51,6 +33,29 @@ export function ProductList() {
   const [typeFilter, setTypeFilter] = useState(() => {
     if (typeof window !== "undefined") {
       const stored = localStorage.getItem("productTypeFilter");
+      return stored !== null ? stored : null;
+    }
+    return null;
+  });
+  const [enabledFilter, setEnabledFilter] = useState<boolean | null>(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("productEnabledFilter");
+      return stored !== null ? stored === "true" : null;
+    }
+    return null;
+  });
+
+  const [warningFilter, setWarningFilter] = useState<boolean | null>(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("productWarningFilter");
+      return stored !== null ? stored === "true" : null;
+    }
+    return null;
+  });
+
+  const [subtypesFilter, setSubtypesFilter] = useState<string | null>(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("productSubtypesFilter");
       return stored !== null ? stored : null;
     }
     return null;
@@ -90,10 +95,43 @@ export function ProductList() {
   }, [typeFilter]);
 
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      if (enabledFilter !== null) {
+        localStorage.setItem("productEnabledFilter", String(enabledFilter));
+      } else {
+        localStorage.removeItem("productEnabledFilter");
+      }
+    }
+  }, [enabledFilter]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      if (warningFilter !== null) {
+        localStorage.setItem("productWarningFilter", String(warningFilter));
+      } else {
+        localStorage.removeItem("productWarningFilter");
+      }
+    }
+  }, [warningFilter]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      if (subtypesFilter) {
+        localStorage.setItem("productSubtypesFilter", subtypesFilter);
+      } else {
+        localStorage.removeItem("productSubtypesFilter");
+      }
+    }
+  }, [subtypesFilter]);
+
+  useEffect(() => {
     console.log("Loaded filters:", {
       searchTerm,
       storeFilter,
       typeFilter,
+      enabledFilter,
+      warningFilter,
+      subtypesFilter,
     });
   }, []);
 
@@ -103,13 +141,11 @@ export function ProductList() {
       const data = await getProducts();
       setProducts(data);
       console.log(
-        data
-          .slice(0, 5)
-          .map((product) => ({
-            ...product,
-            count_clicked: undefined,
-            price_history: undefined,
-          }))
+        data.slice(0, 5).map((product) => ({
+          ...product,
+          count_clicked: undefined,
+          price_history: undefined,
+        }))
       );
     } catch (error) {
       console.error("Error fetching products:", error);
@@ -161,16 +197,31 @@ export function ProductList() {
     return Array.from(types);
   };
 
+  const getUniqueSubtypes = () => {
+    const subtypes = new Set<string>();
+    products.forEach((product) => {
+      if (product.subtypes && Array.isArray(product.subtypes)) {
+        product.subtypes.forEach((subtype) => {
+          subtypes.add(subtype);
+        });
+      }
+    });
+    return Array.from(subtypes);
+  };
+
   const filteredProducts = products.filter((product) => {
     const matchesSearch =
       product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       product.store.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStore =
-      !storeFilter ||
-      product.store.toLowerCase().includes(storeFilter.toLowerCase());
+    const matchesStore = !storeFilter || product.store.toLowerCase().includes(storeFilter.toLowerCase());
     const matchesType = !typeFilter || product.type === typeFilter;
+    const matchesEnabled = enabledFilter === null || product.enabled === enabledFilter;
+    const matchesWarning = warningFilter === null || product.warning === warningFilter;
+    const matchesSubtypes =
+      !subtypesFilter ||
+      (product.subtypes && Array.isArray(product.subtypes) && product.subtypes.includes(subtypesFilter));
 
-    return matchesSearch && matchesStore && matchesType;
+    return matchesSearch && matchesStore && matchesType && matchesEnabled && matchesWarning && matchesSubtypes;
   });
 
   if (loading) {
@@ -215,17 +266,64 @@ export function ProductList() {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="w-[150px] justify-between">
-              <span>{typeFilter || "All Types"}</span>
-              <ChevronDown className="h-4 w-4" />
+              <span className="truncate">{typeFilter || "All Types"}</span>
+              <ChevronDown className="h-4 w-4 flex-shrink-0 ml-1" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="max-h-[200px] overflow-y-auto">
+            <DropdownMenuItem onClick={() => setTypeFilter(null)}>All Types</DropdownMenuItem>
+            {getUniqueTypes().map((type) => (
+              <DropdownMenuItem key={type} onClick={() => setTypeFilter(type)}>
+                <span className="truncate">{type}</span>
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" className="w-[150px] justify-between">
+              <span className="truncate">
+                {enabledFilter === null ? "All Status" : enabledFilter ? "Active" : "Inactive"}
+              </span>
+              <ChevronDown className="h-4 w-4 flex-shrink-0 ml-1" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
-            <DropdownMenuItem onClick={() => setTypeFilter(null)}>
-              All Types
-            </DropdownMenuItem>
-            {getUniqueTypes().map((type) => (
-              <DropdownMenuItem key={type} onClick={() => setTypeFilter(type)}>
-                {type}
+            <DropdownMenuItem onClick={() => setEnabledFilter(null)}>All Status</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setEnabledFilter(true)}>Active</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setEnabledFilter(false)}>Inactive</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" className="w-[150px] justify-between">
+              <span className="truncate">
+                {warningFilter === null ? "All Warnings" : warningFilter ? "With Warning" : "No Warning"}
+              </span>
+              <ChevronDown className="h-4 w-4 flex-shrink-0 ml-1" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem onClick={() => setWarningFilter(null)}>All Warnings</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setWarningFilter(true)}>With Warning</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setWarningFilter(false)}>No Warning</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" className="w-[150px] justify-between">
+              <span className="truncate">{subtypesFilter || "All Subtypes"}</span>
+              <ChevronDown className="h-4 w-4 flex-shrink-0 ml-1" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="max-h-[200px] overflow-y-auto w-[200px]">
+            <DropdownMenuItem onClick={() => setSubtypesFilter(null)}>All Subtypes</DropdownMenuItem>
+            {getUniqueSubtypes().map((subtype) => (
+              <DropdownMenuItem key={subtype} onClick={() => setSubtypesFilter(subtype)}>
+                <span className="truncate">{subtype}</span>
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>
@@ -252,10 +350,7 @@ export function ProductList() {
           <TableBody>
             {filteredProducts.length === 0 ? (
               <TableRow>
-                <TableCell
-                  colSpan={6}
-                  className="text-center py-8 text-muted-foreground"
-                >
+                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                   No products found
                 </TableCell>
               </TableRow>
@@ -265,12 +360,7 @@ export function ProductList() {
                   <TableCell className="font-medium">{product.name}</TableCell>
                   <TableCell>{product.store}</TableCell>
                   <TableCell>{product.type}</TableCell>
-                  <TableCell>
-                    €
-                    {typeof product.price === "number"
-                      ? product.price.toFixed(2)
-                      : "0.00"}
-                  </TableCell>
+                  <TableCell>€{typeof product.price === "number" ? product.price.toFixed(2) : "0.00"}</TableCell>
                   <TableCell>
                     {product.warning ? (
                       <span className="w-full flex items-center justify-center">
@@ -281,9 +371,7 @@ export function ProductList() {
                   <TableCell>
                     <span
                       className={`px-2 py-1 rounded-full text-xs ${
-                        product.enabled
-                          ? "bg-green-100 text-green-800"
-                          : "bg-red-100 text-red-800"
+                        product.enabled ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
                       }`}
                     >
                       {product.enabled ? "Active" : "Inactive"}
@@ -301,11 +389,7 @@ export function ProductList() {
                         size="icon"
                         className="text-red-500"
                         onClick={() => {
-                          if (
-                            window.confirm(
-                              "Are you sure you want to delete this product?"
-                            )
-                          ) {
+                          if (window.confirm("Are you sure you want to delete this product?")) {
                             handleDelete(product.id!);
                           }
                         }}
