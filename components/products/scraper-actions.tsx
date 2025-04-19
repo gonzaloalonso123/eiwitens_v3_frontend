@@ -216,7 +216,7 @@ export function ScraperActions({
               )}
             </div>
           </div>
-          {testResult?.generatedActions?.length > 0 ? (
+          {testResult?.generatedActions && testResult?.generatedActions?.length > 0 ? (
             <div>
               <p className="text-gray-500">
                 The AI has generated the following actions based on the page content. You can use these actions to

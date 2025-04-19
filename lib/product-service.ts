@@ -162,8 +162,8 @@ export const migrate = async () => {
     try {
       const newProduct = {
         subtypes: product.subtypes.map((s) => {
-          if (s === "protein_milkshake") return "proteine_milkshake";
-          if (s === "whey_protein") return "whey_proteine";
+          if (s == "protein_milkshake") return "proteine_milkshake";
+          if (s == "whey_protein") return "whey_proteine";
           else return s;
         }),
       };
