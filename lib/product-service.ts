@@ -1,6 +1,14 @@
-import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, updateDoc, setDoc } from "firebase/firestore";
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  getDoc,
+  getDocs,
+  updateDoc,
+  setDoc,
+} from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { v4 as uuidv4 } from "uuid";
 
 export interface Product {
   id?: string;
@@ -41,6 +49,8 @@ export interface Product {
     name: string;
     amount: number;
   }[];
+  provisional_price: number | null;
+  out_of_stock: boolean;
 }
 
 export interface PriceHistory {
@@ -84,12 +94,17 @@ export const getBrandDiscounts = async (): Promise<BrandDiscount[]> => {
   return discounts;
 };
 
-export const createProduct = async (product: Omit<Product, "id">): Promise<void> => {
+export const createProduct = async (
+  product: Omit<Product, "id">
+): Promise<void> => {
   const productsRef = collection(db, "products");
   await addDoc(productsRef, product);
 };
 
-export const createBrandDiscount = async (discount: Omit<BrandDiscount, "id">, brand: string): Promise<void> => {
+export const createBrandDiscount = async (
+  discount: Omit<BrandDiscount, "id">,
+  brand: string
+): Promise<void> => {
   await setDoc(doc(db, "brand_discounts", brand), {
     ...discount,
   });
@@ -103,7 +118,10 @@ export const deleteBrandDiscount = async (brand: string): Promise<void> => {
   await deleteDoc(doc(db, "brand_discounts", brand));
 };
 
-export const updateProduct = async (id: string, product: Partial<Product>): Promise<void> => {
+export const updateProduct = async (
+  id: string,
+  product: Partial<Product>
+): Promise<void> => {
   const productRef = doc(db, "products", id);
   await updateDoc(productRef, product).catch((error) => {
     console.error("Error updating document: ", error);
@@ -139,7 +157,9 @@ export const applyDiscountToAllProductsOfStore = async (
   createBrandDiscount({ discount_type, discount_value, discount_code }, store);
 };
 
-export const removeDiscountFromAllProductsOfStore = async (store: string): Promise<void> => {
+export const removeDiscountFromAllProductsOfStore = async (
+  store: string
+): Promise<void> => {
   const products = await getProducts();
   products.forEach(async (product) => {
     if (product.store === store && product.id) {
@@ -153,27 +173,48 @@ export const removeDiscountFromAllProductsOfStore = async (store: string): Promi
   deleteBrandDiscount(store);
 };
 
+export const getRogiersFavorites = async () => {
+  const rogiersFavoritesRef = collection(db, "rogiers_favorites");
+  return getDocs(rogiersFavoritesRef).then((snapshot) => {
+    return snapshot.docs.map((doc) => doc.id);
+  });
+};
+
+export const replaceRogiersFavorites = async (
+  favorites: string[]
+): Promise<void> => {
+  const rogiersFavoritesRef = collection(db, "rogiers_favorites");
+  const snapshot = await getDocs(rogiersFavoritesRef);
+  snapshot.docs.forEach(async (document) => {
+    await deleteDoc(doc(db, "rogiers_favorites", document.id));
+  });
+  favorites.forEach(async (favorite) => {
+    await setDoc(doc(db, "rogiers_favorites", favorite), {
+      [favorite]: true,
+    });
+  });
+};
+
 export const migrate = async () => {
-  const products = await getProducts();
-  const defaultCookieBannerXPaths: string[] = [];
-  let migratedCount = 0;
-
-  for (const product of products) {
-    try {
-      const newProduct = {
-        subtypes: product.subtypes.map((s) => {
-          if (s == "protein_milkshake") return "proteine_milkshake";
-          if (s == "whey_protein") return "whey_proteine";
-          else return s;
-        }),
-      };
-      await updateProduct(product.id, newProduct);
-      migratedCount++;
-      console.log(`Migrated product: ${product.name} (${product.id})`);
-    } catch (error) {
-      console.error(`Error migrating product ${product.id}:`, error);
-    }
-  }
-
-  console.log(`Migration completed. ${migratedCount} of ${products.length} products migrated.`);
+  // const products = await getProducts();
+  // let migratedCount = 0;
+  // for (const product of products) {
+  //   try {
+  //     const newProduct = {
+  //       subtypes: product.subtypes.map((s) => {
+  //         if (s == "protein_milkshake") return "proteine_milkshake";
+  //         if (s == "whey_protein") return "whey_proteine";
+  //         else return s;
+  //       }),
+  //     };
+  //     await updateProduct(product.id, newProduct);
+  //     migratedCount++;
+  //     console.log(`Migrated product: ${product.name} (${product.id})`);
+  //   } catch (error) {
+  //     console.error(`Error migrating product ${product.id}:`, error);
+  //   }
+  // }
+  // console.log(
+  //   `Migration completed. ${migratedCount} of ${products.length} products migrated.`
+  // );
 };

@@ -12,6 +12,8 @@ import {
   BarChart3,
   Home,
   RefreshCw,
+  Bird,
+  ShieldCheck,
 } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import Logo from "@/images/rogier.webp";
@@ -86,6 +88,18 @@ export function Sidebar() {
             label="General Analytics"
             href="/dashboard/analytics"
             active={pathname === "/dashboard/analytics"}
+          />
+          <NavItem
+            icon={<ShieldCheck className="h-5 w-5" />}
+            label="Verify Low Prices"
+            href="/dashboard/verify-provisional-prices"
+            active={pathname === "/dashboard/verify-provisional-prices"}
+          />
+          <NavItem
+            icon={<Bird className="h-5 w-5" />}
+            label="Rogiers Choice"
+            href="/dashboard/rogiers-choice"
+            active={pathname === "/dashboard/rogiers-choice"}
           />
         </nav>
       </div>
