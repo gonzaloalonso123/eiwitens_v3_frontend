@@ -82,6 +82,7 @@ const productSchema = z.object({
   enabled_top10: z.boolean().default(true),
   scrape_enabled: z.boolean().default(true),
   warning: z.boolean().default(false),
+  dose: z.string().optional(),
   scraper: z
     .array(
       z.object({

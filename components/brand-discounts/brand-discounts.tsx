@@ -4,17 +4,14 @@ import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BrandDiscountList } from "./brand-discount-list";
 import { AddDiscount } from "./add-discount";
+import { DeleteBrandDiscount } from "./delete-brand-discount";
 
 export function BrandDiscounts() {
   const [activeTab, setActiveTab] = useState("active");
 
   return (
     <div>
-      <Tabs
-        defaultValue={activeTab}
-        onValueChange={setActiveTab}
-        className="w-full"
-      >
+      <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2 max-w-md">
           <TabsTrigger value="active">Active Discounts</TabsTrigger>
           <TabsTrigger value="new">Add New</TabsTrigger>
@@ -26,6 +23,8 @@ export function BrandDiscounts() {
           <AddDiscount />
         </TabsContent>
       </Tabs>
+      <div className="h-20" />
+      <DeleteBrandDiscount />
     </div>
   );
 }

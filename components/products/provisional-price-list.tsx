@@ -123,9 +123,7 @@ export function ProvisionalPriceList() {
                     </TableCell>
                     <TableCell>{product.store}</TableCell>
                     <TableCell>€{product?.price || 0}</TableCell>
-                    <TableCell>
-                      €{product.provisional_price?.toFixed(2)}
-                    </TableCell>
+                    <TableCell>€{product.provisional_price}</TableCell>
                     <TableCell>
                       <a
                         href={product.url}

@@ -196,25 +196,16 @@ export const replaceRogiersFavorites = async (
 };
 
 export const migrate = async () => {
-  // const products = await getProducts();
-  // let migratedCount = 0;
-  // for (const product of products) {
-  //   try {
-  //     const newProduct = {
-  //       subtypes: product.subtypes.map((s) => {
-  //         if (s == "protein_milkshake") return "proteine_milkshake";
-  //         if (s == "whey_protein") return "whey_proteine";
-  //         else return s;
-  //       }),
-  //     };
-  //     await updateProduct(product.id, newProduct);
-  //     migratedCount++;
-  //     console.log(`Migrated product: ${product.name} (${product.id})`);
-  //   } catch (error) {
-  //     console.error(`Error migrating product ${product.id}:`, error);
-  //   }
-  // }
-  // console.log(
-  //   `Migration completed. ${migratedCount} of ${products.length} products migrated.`
-  // );
+  const products = await getProducts();
+  for (const product of products) {
+    try {
+      const newProduct = {
+        provisional_price: null,
+      };
+      await updateProduct(product.id, newProduct);
+      console.log(`Migrated product ${product.id}`);
+    } catch (error) {
+      console.error(`Error migrating product ${product.id}:`, error);
+    }
+  }
 };
