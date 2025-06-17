@@ -29,11 +29,14 @@ export const productSubtypes: Record<string, { value: string; label: string }[]>
     { label: "Whey Hydro", value: "whey_hydro" },
     { label: "Whey Concentraat", value: "whey_concentrate" },
     { label: "Collageen eiwit", value: "collageen_eiwit" },
+    { label: "PeptoPro", value: "pepto_pro" },
   ],
   creatine: [
     { value: "monohydrate", label: "Monohydrate" },
     { value: "hcl", label: "HCL" },
     { value: "blend", label: "Blend" },
+    { value: "creapure", label: "Creapure" },
+    { value: "kre_alkalyn", label: "Kre-Alkalyn" },
   ],
   weight_gainer: [
     { value: "high_calorie", label: "High Calorie" },
@@ -44,6 +47,10 @@ export const productSubtypes: Record<string, { value: string; label: string }[]>
     { value: "stimulant_free", label: "Stimulant Free" },
     { value: "caffeine_tablets", label: "Caffeine Tablets" },
     { value: "caffeine_free", label: "Caffeine Free" },
+    {
+      value: "beta_alanine",
+      label: "Beta-Alanine",
+    },
   ],
   vitamins: [
     { value: "multivitamin", label: "Multivitamin" },
