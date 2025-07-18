@@ -37,6 +37,7 @@ export const productSubtypes: Record<string, { value: string; label: string }[]>
     { value: "blend", label: "Blend" },
     { value: "creapure", label: "Creapure" },
     { value: "kre_alkalyn", label: "Kre-Alkalyn" },
+    { value: "ethyl_ester", label: "Ethyl Ester" },
   ],
   weight_gainer: [
     { value: "high_calorie", label: "High Calorie" },
