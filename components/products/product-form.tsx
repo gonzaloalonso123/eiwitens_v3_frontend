@@ -728,7 +728,7 @@ function ProductFormContent({
                 {watchType === "weight_gainer" &&
                   form.getValues("price_per_1000_calories") && (
                     <div className="flex justify-between mt-1">
-                      <span>Price per 100 calories:</span>
+                      <span>Price per 1000 calories:</span>
                       <span className="font-medium">
                         €{form.getValues("price_per_1000_calories")}
                       </span>
