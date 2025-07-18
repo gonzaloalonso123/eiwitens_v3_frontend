@@ -30,6 +30,7 @@ export const productSubtypes: Record<string, { value: string; label: string }[]>
     { label: "Whey Concentraat", value: "whey_concentrate" },
     { label: "Collageen eiwit", value: "collageen_eiwit" },
     { label: "PeptoPro", value: "pepto_pro" },
+    { label: "Zonder Zoetstof", value: "zonder_zoetstof" },
   ],
   creatine: [
     { value: "monohydrate", label: "Monohydrate" },
