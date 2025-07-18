@@ -42,7 +42,7 @@ export const makeCalculations = (product: Product): void => {
     const totalCalories = (caloriesAmount * totalAmount) / 100;
     const pricePerCalories = (price / totalCalories) * 100;
 
-    product.price_per_100_calories = pricePerCalories.toFixed(2);
+    product.price_per_1000_calories = pricePerCalories.toFixed(2);
   }
   if (product.type == "preworkout" && product.dose && product.ammount && product.price) {
     const dose = Number.parseFloat(product.dose);

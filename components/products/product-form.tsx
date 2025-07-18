@@ -106,7 +106,7 @@ const productSchema = z.object({
     .default([]),
   price_for_element_gram: z.string().optional(),
   price_per_dose: z.string().optional(),
-  price_per_100_calories: z.string().optional(),
+  price_per_1000_calories: z.string().optional(),
   count_clicked: z.array(z.object({ date: z.string() })).default([]),
   trustPilotScore: z.number().optional(),
 });
@@ -148,8 +148,8 @@ export function ProductForm({
         "price_for_element_gram",
         values.price_for_element_gram || ""
       );
-      if (values.price_per_100_calories) {
-        form.setValue("price_per_100_calories", values.price_per_100_calories);
+      if (values.price_per_1000_calories) {
+        form.setValue("price_per_1000_calories", values.price_per_1000_calories);
       }
 
       console.log(values);
@@ -726,11 +726,11 @@ function ProductFormContent({
                   </div>
                 )}
                 {watchType === "weight_gainer" &&
-                  form.getValues("price_per_100_calories") && (
+                  form.getValues("price_per_1000_calories") && (
                     <div className="flex justify-between mt-1">
                       <span>Price per 100 calories:</span>
                       <span className="font-medium">
-                        €{form.getValues("price_per_100_calories")}
+                        €{form.getValues("price_per_1000_calories")}
                       </span>
                     </div>
                   )}
