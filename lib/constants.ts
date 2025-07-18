@@ -52,6 +52,9 @@ export const productSubtypes: Record<string, { value: string; label: string }[]>
       value: "beta_alanine",
       label: "Beta-Alanine",
     },
+    { value: "l_citrulline", label: "L-Citrulline" },
+    { value: "tyrosine", label: "Tyrosine" },
+    { value: "taurine", label: "Taurine" },
   ],
   vitamins: [
     { value: "multivitamin", label: "Multivitamin" },
