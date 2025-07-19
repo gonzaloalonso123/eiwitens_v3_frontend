@@ -70,8 +70,18 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
   }
 }
 
+
+body {
+  -webkit-user-select: none;
+  user-select: none;
+  touch-callout: none;
+  tap-highlight-color: transparent;
+  overscroll-behavior: none;
+  touch-action: pan-x pan-y;
+}

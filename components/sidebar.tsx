@@ -28,7 +28,7 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <div className="flex h-screen w-[300px] flex-col border-r bg-white overflow-hidden">
+    <div className="flex h-screen w-[300px] flex-col border-r bg-white overflow-hidden sticky top-0">
       <Image
         src={Logo}
         alt="Rogier"

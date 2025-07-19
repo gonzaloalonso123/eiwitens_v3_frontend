@@ -20,7 +20,7 @@ export default function RootLayout({
   return (
     // Add suppressHydrationWarning to prevent hydration errors related to theme
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.className} overflow-hidden`}>
+      <body className={`${inter.className}`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="light"
