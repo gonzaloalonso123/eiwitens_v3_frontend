@@ -162,7 +162,7 @@ export function ScraperActions({
       setTestResult({ success: result.price, ...result });
       if (result.price > 0) {
         setShowConfetti(true);
-        setTimeout(() => setShowConfetti(false), 2500);
+        setTimeout(() => setShowConfetti(false), 3000);
       }
     } finally {
       setTesting(false);
@@ -223,6 +223,12 @@ export function ScraperActions({
                 </Alert>
               )}
             </div>
+            {showConfetti &&
+              (<div className="flex flex-col items-center justify-center">
+                <img src="/sexy-girl.jpeg" alt="Confetti Celebration" className="w-32 h-auto rounded-md" />
+                <p className="mt-2 p-2 bg-green-100 rounded-md">Good job handsome</p>
+              </div>)
+            }
           </div>
           {testResult?.generatedActions && testResult?.generatedActions?.length > 0 ? (
             <div>
