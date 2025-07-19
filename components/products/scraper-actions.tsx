@@ -28,6 +28,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import Rogier from "@/images/rogier.webp";
 import Image from "next/image";
+import Confetti from "react-confetti";
 
 const actionTypes = [
   { value: "click", label: "Click Element" },
@@ -150,6 +151,8 @@ export function ScraperActions({
     }
   };
 
+  const [showConfetti, setShowConfetti] = useState(true);
+
   const handleTestScraper = async () => {
     setTesting(true);
     setTestResult(null);
@@ -157,6 +160,10 @@ export function ScraperActions({
     try {
       const result = await onTest(url, value);
       setTestResult({ success: result.price, ...result });
+      if (result.price > 0) {
+        setShowConfetti(true);
+        setTimeout(() => setShowConfetti(false), 5000); // Hide confetti after 5 seconds
+      }
     } finally {
       setTesting(false);
     }
@@ -164,6 +171,7 @@ export function ScraperActions({
 
   return (
     <div className="space-y-4">
+      {showConfetti && <Confetti width={window.innerWidth} height={window.innerHeight} />}
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext items={value.map((item) => item.id)} strategy={verticalListSortingStrategy}>
           {value.map((action, index) => (
