@@ -109,6 +109,7 @@ const productSchema = z.object({
   price_per_1000_calories: z.string().optional(),
   count_clicked: z.array(z.object({ date: z.string() })).default([]),
   trustPilotScore: z.number().optional(),
+  only_in_store: z.boolean().default(false),
 });
 
 type ProductFormValues = z.infer<typeof productSchema>;
@@ -436,10 +437,9 @@ function ProductFormContent({
                           key={subtype.value}
                           className={`
                             px-3 py-1 rounded-full text-sm cursor-pointer
-                            ${
-                              field.value?.includes(subtype.value)
-                                ? "bg-primary text-primary-foreground"
-                                : "bg-secondary text-secondary-foreground"
+                            ${field.value?.includes(subtype.value)
+                              ? "bg-primary text-primary-foreground"
+                              : "bg-secondary text-secondary-foreground"
                             }
                           `}
                         >
@@ -710,13 +710,13 @@ function ProductFormContent({
                 <h3 className="font-medium mb-2">Calculated Values</h3>
                 {(watchType === "proteine" ||
                   watchType === "weight_gainer") && (
-                  <div className="flex justify-between">
-                    <span>Price per 100g protein:</span>
-                    <span className="font-medium">
-                      €{form.getValues("price_for_element_gram")}
-                    </span>
-                  </div>
-                )}
+                    <div className="flex justify-between">
+                      <span>Price per 100g protein:</span>
+                      <span className="font-medium">
+                        €{form.getValues("price_for_element_gram")}
+                      </span>
+                    </div>
+                  )}
                 {watchType === "creatine" && (
                   <div className="flex justify-between">
                     <span>Price per 100g creatine:</span>
@@ -919,6 +919,29 @@ function ProductFormContent({
                     <FormLabel>Warning Flag</FormLabel>
                     <FormDescription>
                       Mark this product with a warning flag
+                    </FormDescription>
+                  </div>
+                </FormItem>
+              )}
+            />
+
+
+            <FormField
+              control={form.control}
+              name="only_in_store"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      disabled={disabled}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>Only in store</FormLabel>
+                    <FormDescription>
+                      This product is only available in the physical store
                     </FormDescription>
                   </div>
                 </FormItem>

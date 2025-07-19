@@ -51,6 +51,7 @@ export interface Product {
   }[];
   provisional_price: number | null;
   out_of_stock: boolean;
+  only_in_store: boolean;
 }
 
 export interface PriceHistory {
