@@ -9,6 +9,7 @@ export function useScrollPersistence() {
 
     useEffect(() => {
         const savedScrollPosition = localStorage.getItem(`scroll-${pathname}`)
+        console.log("Saved scroll position for", pathname, ":", savedScrollPosition)
         if (savedScrollPosition) {
             const scrollY = Number.parseInt(savedScrollPosition, 10)
             setTimeout(() => {
@@ -16,6 +17,7 @@ export function useScrollPersistence() {
             }, 100)
         }
         const handleScroll = () => {
+            console.log("Scroll event detected on", pathname)
             if (timeoutRef.current) {
                 clearTimeout(timeoutRef.current)
             }

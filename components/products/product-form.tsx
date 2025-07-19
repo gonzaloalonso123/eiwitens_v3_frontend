@@ -96,8 +96,6 @@ export function ProductForm({ initialData, isEditing = false }: ProductFormProps
   const router = useRouter()
   const ingredientDialog = useDialog(false)
   const ingredients = useIngredients()
-
-  // Add scroll persistence
   const { clearScrollPosition } = useScrollPersistence()
 
   const form = useForm<ProductFormValues>({
