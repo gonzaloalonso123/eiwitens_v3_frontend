@@ -151,7 +151,7 @@ export function ScraperActions({
     }
   };
 
-  const [showConfetti, setShowConfetti] = useState(true);
+  const [showConfetti, setShowConfetti] = useState(false);
 
   const handleTestScraper = async () => {
     setTesting(true);
@@ -162,7 +162,7 @@ export function ScraperActions({
       setTestResult({ success: result.price, ...result });
       if (result.price > 0) {
         setShowConfetti(true);
-        setTimeout(() => setShowConfetti(false), 2500); // Hide confetti after 5 seconds
+        setTimeout(() => setShowConfetti(false), 2500);
       }
     } finally {
       setTesting(false);
@@ -171,7 +171,7 @@ export function ScraperActions({
 
   return (
     <div className="space-y-4">
-      {showConfetti && <Confetti width={window.innerWidth} height={window.innerHeight} />}
+      {showConfetti && <div className="fixed pointer-events-none top-0 left-0"><Confetti width={window.innerWidth} height={window.innerHeight} /></div>}
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext items={value.map((item) => item.id)} strategy={verticalListSortingStrategy}>
           {value.map((action, index) => (
