@@ -162,7 +162,7 @@ export function ScraperActions({
       setTestResult({ success: result.price, ...result });
       if (result.price > 0) {
         setShowConfetti(true);
-        setTimeout(() => setShowConfetti(false), 5000); // Hide confetti after 5 seconds
+        setTimeout(() => setShowConfetti(false), 2500); // Hide confetti after 5 seconds
       }
     } finally {
       setTesting(false);
