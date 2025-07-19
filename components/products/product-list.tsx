@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/components/ui/use-toast";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { useScrollPersistence } from "@/hooks/use-scroll-persistence";
 
 export function ProductList() {
   const [searchTerm, setSearchTerm] = useState(() => {
@@ -261,6 +262,8 @@ export function ProductList() {
     );
   });
 
+  const { clearScrollPosition } = useScrollPersistence()
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -326,8 +329,8 @@ export function ProductList() {
                 {outOfStockFilter === null
                   ? "All Stock"
                   : outOfStockFilter
-                  ? "Out of Stock"
-                  : "In Stock"}
+                    ? "Out of Stock"
+                    : "In Stock"}
               </span>
               <ChevronDown className="h-4 w-4 flex-shrink-0 ml-1" />
             </Button>
@@ -352,8 +355,8 @@ export function ProductList() {
                 {enabledFilter === null
                   ? "All Status"
                   : enabledFilter
-                  ? "Active"
-                  : "Inactive"}
+                    ? "Active"
+                    : "Inactive"}
               </span>
               <ChevronDown className="h-4 w-4 flex-shrink-0 ml-1" />
             </Button>
@@ -378,8 +381,8 @@ export function ProductList() {
                 {warningFilter === null
                   ? "All Warnings"
                   : warningFilter
-                  ? "With Warning"
-                  : "No Warning"}
+                    ? "With Warning"
+                    : "No Warning"}
               </span>
               <ChevronDown className="h-4 w-4 flex-shrink-0 ml-1" />
             </Button>
@@ -471,22 +474,20 @@ export function ProductList() {
                   </TableCell>
                   <TableCell>
                     <span
-                      className={`px-2 py-1 rounded-full text-xs ${
-                        product.enabled
+                      className={`px-2 py-1 rounded-full text-xs ${product.enabled
                           ? "bg-green-100 text-green-800"
                           : "bg-red-100 text-red-800"
-                      }`}
+                        }`}
                     >
                       {product.enabled ? "Active" : "Inactive"}
                     </span>
                   </TableCell>
                   <TableCell>
                     <span
-                      className={`px-2 py-1 whitespace-nowrap rounded-full text-xs ${
-                        !product.out_of_stock
+                      className={`px-2 py-1 whitespace-nowrap rounded-full text-xs ${!product.out_of_stock
                           ? "bg-green-100 text-green-800"
                           : "bg-red-100 text-red-800"
-                      }`}
+                        }`}
                     >
                       {!product.out_of_stock ? "In Stock" : "Out of Stock"}
                     </span>
