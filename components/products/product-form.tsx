@@ -389,10 +389,9 @@ function ProductFormContent({
                           key={subtype.value}
                           className={`
                             px-3 py-1 rounded-full text-sm cursor-pointer
-                            ${
-                              field.value?.includes(subtype.value)
-                                ? "bg-primary text-primary-foreground"
-                                : "bg-secondary text-secondary-foreground"
+                            ${field.value?.includes(subtype.value)
+                              ? "bg-primary text-primary-foreground"
+                              : "bg-secondary text-secondary-foreground"
                             }
                           `}
                         >
@@ -485,75 +484,73 @@ function ProductFormContent({
                 />
               </>
             )}
-
             {watchType === "preworkout" && (
-              <>
-                <FormField
-                  control={form.control}
-                  name="dose"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Recommended Dose (g)</FormLabel>
-                      <FormControl>
-                        <Input disabled={disabled} {...field} />
-                      </FormControl>
-                      <FormDescription>The recommended serving size in grams</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="ingredients"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Ingredients</FormLabel>
-                      <FormControl>
-                        <div className="space-y-2">
-                          <div className="flex flex-wrap gap-2">
-                            {(field.value || []).map((element, index) => (
-                              <div key={index} className="flex items-center gap-2 bg-secondary p-2 rounded-md">
-                                <span>{element.name}</span>
-                                <span className="text-sm text-muted-foreground">{element.amount}mg</span>
-                                <button
-                                  type="button"
-                                  className="text-destructive hover:text-destructive/80"
-                                  onClick={() => {
-                                    const newElements = [...(field.value || [])]
-                                    newElements.splice(index, 1)
-                                    field.onChange(newElements)
-                                  }}
-                                  disabled={disabled}
-                                >
-                                  ×
-                                </button>
-                              </div>
-                            ))}
-                          </div>
-                          {!disabled && (
-                            <div className="flex flex-wrap gap-2">
-                              <AIIngredientDetector
-                                onIngredientsDetected={(detectedIngredients) => {
-                                  const currentIngredients = field.value || []
-                                  field.onChange([...currentIngredients, ...detectedIngredients])
+              <FormField
+                control={form.control}
+                name="dose"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Recommended Dose (g)</FormLabel>
+                    <FormControl>
+                      <Input disabled={disabled} {...field} />
+                    </FormControl>
+                    <FormDescription>The recommended serving size in grams</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+            {watchType === "preworkout" || watchType === "preworkout_ingredient" && (
+              <FormField
+                control={form.control}
+                name="ingredients"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Ingredients</FormLabel>
+                    <FormControl>
+                      <div className="space-y-2">
+                        <div className="flex flex-wrap gap-2">
+                          {(field.value || []).map((element, index) => (
+                            <div key={index} className="flex items-center gap-2 bg-secondary p-2 rounded-md">
+                              <span>{element.name}</span>
+                              <span className="text-sm text-muted-foreground">{element.amount}mg</span>
+                              <button
+                                type="button"
+                                className="text-destructive hover:text-destructive/80"
+                                onClick={() => {
+                                  const newElements = [...(field.value || [])]
+                                  newElements.splice(index, 1)
+                                  field.onChange(newElements)
                                 }}
-                              />
-                              <Button type="button" variant="outline" onClick={onOpenIngredientDialog}>
-                                Add Ingredient
-                              </Button>
+                                disabled={disabled}
+                              >
+                                ×
+                              </button>
                             </div>
-                          )}
+                          ))}
                         </div>
-                      </FormControl>
-                      <FormDescription>
-                        Add the ingredients and their amounts for this pre-workout product
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </>
+                        {!disabled && (
+                          <div className="flex flex-wrap gap-2">
+                            <AIIngredientDetector
+                              onIngredientsDetected={(detectedIngredients) => {
+                                const currentIngredients = field.value || []
+                                field.onChange([...currentIngredients, ...detectedIngredients])
+                              }}
+                            />
+                            <Button type="button" variant="outline" onClick={onOpenIngredientDialog}>
+                              Add Ingredient
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    </FormControl>
+                    <FormDescription>
+                      Add the ingredients and their amounts for this pre-workout product
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             )}
 
             <FormField
