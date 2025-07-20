@@ -500,7 +500,7 @@ function ProductFormContent({
                 )}
               />
             )}
-            {watchType === "preworkout" || watchType === "preworkout_ingredient" && (
+            {(watchType === "preworkout" || watchType === "preworkout_ingredient") && (
               <FormField
                 control={form.control}
                 name="ingredients"
