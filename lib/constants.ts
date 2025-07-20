@@ -5,7 +5,7 @@ export const productTypes = [
   { value: "creatine", label: "Creatine" },
   { value: "weight_gainer", label: "Weight Gainer" },
   { value: "preworkout", label: "Pre-workout" },
-  { value: "preworkout_ingredients", label: "Pre-workout Ingredients" },
+  { value: "preworkout_ingredient", label: "Pre-workout Ingredients" },
   { value: "vitamins", label: "Vitamins" },
   { value: "other", label: "Other" },
 ];
@@ -49,7 +49,7 @@ export const productSubtypes: Record<string, { value: string; label: string }[]>
     { value: "stimulant_free", label: "Stimulant Free" },
     { value: "caffeine_free", label: "Caffeine Free" },
   ],
-  preworkout_ingredients: [
+  preworkout_ingredient: [
     { value: "beta_alanine", label: "Beta-Alanine" },
     { value: "l_citrulline", label: "L-Citrulline" },
     { value: "tyrosine", label: "Tyrosine" },
