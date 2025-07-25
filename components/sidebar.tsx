@@ -22,13 +22,14 @@ import { usePathname } from "next/navigation";
 import { StatusIndicator } from "@/components/status-indicator";
 import Image from "next/image";
 import { Avatar } from "./ui/avatar";
+import { UserInfo } from "./user-info";
 
 export function Sidebar() {
   const { user } = useAuth();
   const pathname = usePathname();
 
   return (
-    <div className="flex h-screen w-[300px] flex-col border-r bg-white overflow-hidden sticky top-0">
+    <div className="flex h-screen min-w-[300px] flex-col border-r bg-white overflow-hidden sticky top-0">
       <Image
         src={Logo}
         alt="Rogier"
@@ -105,9 +106,7 @@ export function Sidebar() {
       </div>
 
       <div className="border-t p-4 bg-white">
-        <div className="text-sm text-muted-foreground">
-          {user || "Not logged in"}
-        </div>
+        <UserInfo />
         <div className="mt-2 flex justify-between items-center">
           <div className="text-sm font-medium">Status</div>
           <StatusIndicator />
@@ -128,11 +127,10 @@ function NavItem({ icon, label, href, active }: NavItemProps) {
   return (
     <Link
       href={href}
-      className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium ${
-        active
+      className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium ${active
           ? "bg-[#e6f7f9] text-[#00bcd4]"
           : "text-muted-foreground hover:bg-muted hover:text-foreground"
-      }`}
+        }`}
     >
       {icon}
       {label}

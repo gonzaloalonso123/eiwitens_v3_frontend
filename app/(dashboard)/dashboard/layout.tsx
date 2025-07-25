@@ -2,6 +2,8 @@ import type React from "react";
 import { Sidebar } from "@/components/sidebar";
 import { AuthGuard } from "@/components/auth-guard";
 import { UserInfo } from "@/components/user-info";
+import { usePathname } from "next/navigation";
+import { Toaster } from "sonner";
 
 export default function DashboardLayout({
   children,
@@ -14,11 +16,11 @@ export default function DashboardLayout({
         <Sidebar />
         <div className="p-4 bg-primary w-full">
           <div className="mx-auto rounded-lg bg-white p-4 shadow-md w-full">
-            <UserInfo />
             {children}
           </div>
         </div>
       </div>
+      <Toaster richColors />
     </AuthGuard>
   );
 }

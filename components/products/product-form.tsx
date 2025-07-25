@@ -16,7 +16,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { useToast } from "@/components/ui/use-toast"
 import { productTypes, productSubtypes, discountTypes, defaultProduct } from "@/lib/constants"
 import { makeCalculations } from "@/lib/helpers"
-import { Edit, Save, AlertTriangle, Copy, Plus, Trash2, Info } from "lucide-react"
+import { Edit, Save, AlertTriangle, Copy, Plus, Trash2, Info, ExternalLink } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useIngredients } from "@/hooks/use-ingredients"
 import { IngredientDialog } from "@/components/products/ingredient-dialog"
@@ -25,6 +25,7 @@ import { testScraper } from "@/lib/api-service"
 import { ScraperActions } from "./scraper-actions"
 import { AIIngredientDetector } from "./ai-ingredients-detector"
 import { useScrollPersistence } from "@/hooks/use-scroll-persistence"
+import { toast } from "sonner"
 
 const productSchema = z.object({
   name: z.string().min(1, "Product name is required"),
@@ -92,7 +93,6 @@ interface ProductFormProps {
 export function ProductForm({ initialData, isEditing = false }: ProductFormProps) {
   const [disabled, setDisabled] = useState(isEditing)
   const [activeTab, setActiveTab] = useState("info")
-  const { toast } = useToast()
   const router = useRouter()
   const ingredientDialog = useDialog(false)
   const ingredients = useIngredients()
@@ -105,7 +105,7 @@ export function ProductForm({ initialData, isEditing = false }: ProductFormProps
       cookieBannerXPaths: initialData?.cookieBannerXPaths || [],
     },
   })
-
+  const isNewProduct = !initialData || !initialData.id
   const watchType = form.watch("type")
   const watchPrice = form.watch("price")
 
@@ -128,30 +128,19 @@ export function ProductForm({ initialData, isEditing = false }: ProductFormProps
     Object.keys(data).forEach((key) => data[key] === undefined && delete data[key])
 
     try {
-      if (initialData?.id) {
+      if (!isNewProduct) {
         await updateProduct(initialData.id, data)
-        toast({
-          title: "Success",
-          description: "Product updated successfully",
-        })
+        toast.success("Product updated successfully")
       } else {
         await createProduct(data)
-        toast({
-          title: "Success",
-          description: "Product created successfully",
-        })
-        // Clear scroll position when navigating away after successful creation
+        toast.success("Product created successfully")
         clearScrollPosition()
         router.push("/dashboard/products")
       }
       setDisabled(true)
     } catch (error) {
       console.error("Error saving product:", error)
-      toast({
-        title: "Error",
-        description: "Failed to save product",
-        variant: "destructive",
-      })
+      toast.error("Failed to save product")
     }
   }
 
@@ -167,10 +156,7 @@ export function ProductForm({ initialData, isEditing = false }: ProductFormProps
     initialData.id = undefined
     form.reset(duplicatedProduct as any)
     setDisabled(false)
-    toast({
-      title: "Product Duplicated",
-      description: "You can now edit and save the duplicated product",
-    })
+    toast.success("Product duplicated successfully")
   }
 
   const handleAddIngredient = (ingredient: {
@@ -183,25 +169,12 @@ export function ProductForm({ initialData, isEditing = false }: ProductFormProps
 
   return (
     <div className="space-y-6">
+      {<ProductFormHeader isNewProduct={isNewProduct} product={initialData} disabled={disabled} showSave={!disabled} save={form.handleSubmit(onSubmit)} setDisabled={setDisabled} duplicateProduct={duplicateProduct} />}
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-bold">{initialData?.id ? "Edit Product" : "Create Product"}</h1>
           {initialData?.warning && <AlertTriangle className="h-5 w-5 text-amber-500" />}
         </div>
-        {initialData?.id && (
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setDisabled(!disabled)}>
-              <Edit className="mr-2 h-4 w-4" />
-              {disabled ? "Edit" : "Cancel"}
-            </Button>
-            <Button variant="outline" onClick={duplicateProduct}>
-              <Copy className="mr-2 h-4 w-4" />
-              Duplicate
-            </Button>
-          </div>
-        )}
       </div>
-
       {initialData?.id && (
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList>
@@ -933,13 +906,6 @@ function ProductFormContent({
             </div>
           </CardContent>
         </Card>
-
-        {!disabled && (
-          <Button type="submit" className="w-full md:w-auto">
-            <Save className="mr-2 h-4 w-4" />
-            Save Product
-          </Button>
-        )}
       </form>
     </Form>
   )
@@ -1006,4 +972,37 @@ function ProductStats({ product }: { product: Product }) {
       </Card>
     </div>
   )
+}
+
+
+const ProductFormHeader = ({ isNewProduct, product, showSave, save, setDisabled, disabled, duplicateProduct }: { isNewProduct: boolean, product: Product, showSave: boolean, save: () => void, setDisabled: (disabled: boolean) => void, disabled: boolean, duplicateProduct: () => void }) => {
+  return <div className="fixed px-6 top-0 right-0 z-10 bg-background border-b border-border p-2 w-[calc(100%-300px)] justify-center">
+    <div className="flex justify-between items-center">
+      <h1 className="text-2xl font-bold">{isNewProduct ? 'New Product' : product.name}</h1>
+      <div className="flex items-center gap-4">
+        {!isNewProduct && <a href={product.url} target="_blank" rel="noopener noreferrer">
+          <Button variant="outline">
+            <ExternalLink className="mr-2 h-4 w-4 inline" />
+            View Product
+          </Button>
+        </a>}
+        {!isNewProduct && <Button variant="outline" onClick={() => setDisabled(!disabled)}>
+          <Edit className="mr-2 h-4 w-4" />
+          {disabled ? "Edit" : "Cancel"}
+        </Button>}
+        {!showSave && !isNewProduct && (
+          <Button variant="outline" onClick={duplicateProduct}>
+            <Copy className="mr-2 h-4 w-4" />
+            Duplicate
+          </Button>
+        )}
+        {showSave && (
+          <Button type="button" size="sm" className="w-full md:w-auto" onClick={save}>
+            <Save className="mr-2 h-4 w-4" />
+            Save Product
+          </Button>
+        )}
+      </div>
+    </div>
+  </div >
 }

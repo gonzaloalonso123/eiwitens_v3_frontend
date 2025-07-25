@@ -160,7 +160,7 @@ export function ScraperActions({
     try {
       const result = await onTest(url, value);
       setTestResult({ success: result.price, ...result });
-      if (result.price > 0) {
+      if (result.price > 0 && !result.generatedActions) {
         setShowConfetti(true);
         setTimeout(() => setShowConfetti(false), 5000);
       }
@@ -171,7 +171,7 @@ export function ScraperActions({
 
   return (
     <div className="space-y-4">
-      {showConfetti && <div className="fixed pointer-events-none top-0 left-0"><Confetti width={window.innerWidth} height={window.innerHeight} /></div>}
+      {/* {showConfetti && <div className="fixed pointer-events-none top-0 left-0"><Confetti width={window.innerWidth} height={window.innerHeight} /></div>} */}
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext items={value.map((item) => item.id)} strategy={verticalListSortingStrategy}>
           {value.map((action, index) => (
