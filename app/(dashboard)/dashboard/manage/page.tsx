@@ -14,7 +14,8 @@ import { TriangleAlert } from "lucide-react";
 export default function ManagePage() {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
-
+  const [emailRes, setEmailRes] = useState<any>(null);
+  const URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
   const handleScrape = async () => {
     setLoading(true);
     try {
@@ -35,6 +36,16 @@ export default function ManagePage() {
     }
   };
 
+
+  const sendEmailSequence = async () => {
+    fetch(`${URL}/send-creapure-update-email`, { method: 'POST' }).then(res => res.json()).then(data => {
+      setEmailRes(data);
+      setLoading(false);
+    }).catch(err => {
+      setLoading(false);
+    });
+    setLoading(true);
+  }
   return (
     <div>
       <h1 className="text-2xl font-bold mb-6">Manage</h1>
@@ -90,6 +101,29 @@ export default function ManagePage() {
                 <TriangleAlert className="h-4 w-4 text-yellow-500" /> DONT TOUCH
                 UNLESS YOU KNOW WHAT YOU'RE DOING)
               </Button>
+              <Button
+                variant="ghost"
+                className="w-full"
+                onClick={sendEmailSequence}
+                disabled={loading}
+              >
+                {loading ? (
+                  <>
+                    <LoadingSpinner className="mr-2 h-4 w-4" />
+                    Sending emails...
+                  </>
+                ) : (
+                  "Send Creapure update email"
+                )}
+              </Button>
+              {emailRes && (
+                <div className="mt-4 p-4 bg-white rounded-md shadow-md">
+                  <h3 className="text-lg font-medium mb-2">Email Response:</h3>
+                  <pre className="bg-gray-100 p-2 rounded-md overflow-x-auto">
+                    {JSON.stringify(emailRes, null, 2)}
+                  </pre>
+                </div>
+              )}
             </div>
           </div>
         </CardContent>

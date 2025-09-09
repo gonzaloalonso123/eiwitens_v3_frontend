@@ -102,6 +102,12 @@ export function Sidebar() {
             href="/dashboard/rogiers-choice"
             active={pathname === "/dashboard/rogiers-choice"}
           />
+          <NavItem
+            icon={<RefreshCw className="h-5 w-5" />}
+            label="Data visualization"
+            href="/dashboard/data-visualization"
+            active={pathname === "/dashboard/data-visualization"}
+          />
         </nav>
       </div>
 
@@ -128,8 +134,8 @@ function NavItem({ icon, label, href, active }: NavItemProps) {
     <Link
       href={href}
       className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium ${active
-          ? "bg-[#e6f7f9] text-[#00bcd4]"
-          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+        ? "bg-[#e6f7f9] text-[#00bcd4]"
+        : "text-muted-foreground hover:bg-muted hover:text-foreground"
         }`}
     >
       {icon}
