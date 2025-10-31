@@ -8,6 +8,7 @@ export const productTypes = [
   { value: "preworkout_ingredient", label: "Pre-workout Ingredients" },
   { value: "vitamins", label: "Vitamins" },
   { value: "other", label: "Other" },
+  { value: "food", label: "Food Supplements" },
 ];
 
 export const productSubtypes: Record<string, { value: string; label: string }[]> = {
@@ -61,6 +62,10 @@ export const productSubtypes: Record<string, { value: string; label: string }[]>
     { value: "vitamin_d", label: "Vitamin D" },
     { value: "vitamin_c", label: "Vitamin C" },
   ],
+  food: [
+    { value: "protein_bar", label: "Protein Bar" },
+    { value: "protein_oats", label: "Protein Oats" },
+  ]
 };
 
 export const discountTypes = [
